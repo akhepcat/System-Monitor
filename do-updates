@@ -1,0 +1,631 @@
+#!/bin/bash
+export RRDLIB=/srv/rrds
+export WEBROOT=/srv/http/sitestats
+export PATH=$PATH:/root/bin
+
+PROGS="uptime.sh load.sh memory.sh eth0.sh speedtest.sh webspeed.sh" #sitestats.sh sda1.sh fping.sh webpage.sh
+PINGS="209.165.128.244 209.165.129.229"	#used by fping.sh
+
+HOUR=$(date +"%-H")	# we don't want zero-padded
+MIN=$(date +"%-M")	# ^^^
+TS=$(( ($HOUR * 3600) + ($MIN * 60) ))
+CMD=$1
+
+usage () {
+	echo "$0 (debug|create|force-create|reindex|update|graph|auto)"
+	echo ""
+	echo "           auto - automatically update, rebuild, and graph everything"
+	echo ""
+	echo "         create - create any RRD files that don't currently exist"
+	echo "   force-create - forcibly create all RRD files, overwriting existing ones"
+	echo "         update - poll all targets and update all RRD files"
+	echo "          debug - shows what env variables will be passed, along with"
+	echo "                  all generated pathnames and filenames"
+	echo ""
+	echo "        reindex - rebuild the daily 'index.html' for current configuration"
+	echo " reindex-weekly - rebuild just the 'weekly.html' index file"
+	echo "reindex-monthly - rebuild just the 'monthly.html' index file"
+	echo " reindex-yearly - rebuild just the 'yearly.html' index file"
+	echo ""
+	echo "          graph - generate the daily graph files"
+	echo "   graph-weekly - generate the weekly graph files"
+	echo "  graph-monthly - generate the monthly graph files"
+	echo "   graph-yearly - generate the yearly graph files"
+}
+
+reindex() {
+
+IDX=${WEBROOT}/index.html
+
+cat >${IDX} <<EOF
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en" dir="ltr">
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+		<meta http-equiv="Content-Style-Type" content="text/css" />
+		<meta http-equiv="Refresh" content="300" />
+		<meta http-equiv="Pragma" content="no-cache" />
+		<meta http-equiv="Cache-Control" content="no-cache" />
+		<link rel="shortcut icon" href="" />
+		<title> Real time Statistics </title>
+	</head>
+<body>
+<p>
+	I provide multiple statistics showing the general health of this server.
+	All statistics are gathered once a minute and the charts are redrawn every 5 minutes.
+	Additionally, this page is automatically reloaded every 5 minutes.
+</p>
+EOF
+
+echo "<p><center>" >>${IDX}
+if [ -r ${WEBROOT}/weekly.html ]
+then
+	echo "&nbsp;&nbsp;&nbsp;<a href=\"weekly.html\">Weekly stats roundup</a>&nbsp;&nbsp;&nbsp;" >>${IDX}
+fi
+if [ -r ${WEBROOT}/monthly.html ]
+then
+	echo "&nbsp;&nbsp;&nbsp;<a href=\"monthly.html\">Monthly stats roundup</a>&nbsp;&nbsp;&nbsp;" >>${IDX}
+fi
+if [ -r ${WEBROOT}/yearly.html ]
+then
+	echo "&nbsp;&nbsp;&nbsp;<a href=\"yearly.html\">Yearly stats roundup</a>&nbsp;&nbsp;&nbsp;" >>${IDX}
+fi
+echo "</center></p><hr>" >>${IDX}
+
+for i in ${PROGS}
+do
+	if [ -z "${i##*load*}" ]
+	then
+		GRAPHS=$($i debug | grep GRAPH)
+		VAR=${i%%.*}
+		GRAPH1=$(echo ${GRAPHS} | cut -f2 -d= | awk '{print $1}')
+		GRAPH2=$(echo ${GRAPHS} | cut -f3 -d= | awk '{print $1}')
+		GRAPH1=${GRAPH1##*/}
+		GRAPH2=${GRAPH2##*/}
+		echo "<h3>${VAR}</h3>" >> ${IDX}
+		echo "<p> <img src=\"${GRAPH1}\" alt="${GRAPH1}" /> </p>" >> ${IDX}
+		echo "<br />" >> ${IDX}
+		echo "<h3>${VAR}</h3>" >> ${IDX}
+		echo "<p> <img src=\"${GRAPH2}\" alt="${GRAPH2}" /> </p>" >> ${IDX}
+		
+	elif [ -z "${i##*sitestats*}" ]
+	then
+		echo "<h3>Other Plugbox Stats</h3>" >> ${IDX}
+		$i graph >> ${IDX}
+
+	elif [ -z "${i##*fping*}" ]
+	then
+		if [ -z "${PINGS}" ];
+		then
+			echo "Need IP for fping, add to PINGS variable"
+			exit 1
+		fi
+		for IP in ${PINGS}
+		do
+			GRAPHNAME=$($i debug ${IP} | grep GRAPHNAME | cut -f 2 -d= )
+			VAR=${i%%.*}
+			echo "<h3>${VAR}</h3>" >> ${IDX}
+			GRAPHNAME=${GRAPHNAME##*/}
+			echo "<p> <img src=\"${GRAPHNAME}\" alt="${GRAPHNAME}" /> </p>" >> ${IDX}
+			echo "<br />" >> ${IDX}
+		done
+	elif [ -z "${i##*webpage*}" ]
+	then
+		GRAPHNAMES=$($i debug ${IP} | grep GRAPHNAME | cut -f 2 -d= )
+		for GRAPHNAME in ${GRAPHNAMES}
+		do
+			VAR=${i%%.*}
+			echo "<h3>${VAR}</h3>" >> ${IDX}
+			GRAPHNAME=${GRAPHNAME##*/}
+			echo "<p> <img src=\"${GRAPHNAME}\" alt="${GRAPHNAME}" /> </p>" >> ${IDX}
+			echo "<br />" >> ${IDX}
+		done
+
+	else
+		GRAPHNAME=$($i debug | grep GRAPHNAME | cut -f 2 -d= )
+		VAR=${i%%.*}
+		echo "<h3>${VAR}</h3>" >> ${IDX}
+		GRAPHNAME=${GRAPHNAME##*/}
+		echo "<p> <img src=\"${GRAPHNAME}\" alt="${GRAPHNAME}" /> </p>" >> ${IDX}
+		echo "<br />" >> ${IDX}
+	fi
+done
+
+echo "</body>" >> ${IDX}
+echo "</html>" >> ${IDX}
+
+}
+
+reindex_weekly() {
+
+IDX=${WEBROOT}/weekly.html
+
+cat >${IDX} <<EOF
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en" dir="ltr">
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+		<meta http-equiv="Content-Style-Type" content="text/css" />
+		<meta http-equiv="Refresh" content="600" />
+		<meta http-equiv="Pragma" content="no-cache" />
+		<meta http-equiv="Cache-Control" content="no-cache" />
+		<link rel="shortcut icon" href="" />
+		<title> Real time Statistics </title>
+	</head>
+<body>
+<p>
+	I provide multiple statistics showing the general health of this server.
+	All statistics are gathered once a minute and the charts are redrawn every 10 minutes.
+	Additionally, this page is automatically reloaded every 10 minutes.
+</p>
+EOF
+
+echo "<p><center>" >>${IDX}
+if [ -r ${WEBROOT}/index.html ]
+then
+	echo "&nbsp;&nbsp;&nbsp;<a href=\"index.html\">Stats roundup</a>&nbsp;&nbsp;&nbsp;" >>${IDX}
+fi
+if [ -r ${WEBROOT}/monthly.html ]
+then
+	echo "&nbsp;&nbsp;&nbsp;<a href=\"monthly.html\">Monthly stats roundup</a>&nbsp;&nbsp;&nbsp;" >>${IDX}
+fi
+if [ -r ${WEBROOT}/yearly.html ]
+then
+	echo "&nbsp;&nbsp;&nbsp;<a href=\"yearly.html\">Yearly stats roundup</a>&nbsp;&nbsp;&nbsp;" >>${IDX}
+fi
+echo "</center></p><hr>" >>${IDX}
+
+for i in ${PROGS}
+do
+	if [ -z "${i##*load*}" ]
+	then
+		GRAPHS=$($i debug | grep GRAPH)
+		VAR=${i%%.*}
+		GRAPH1=$(echo ${GRAPHS} | cut -f2 -d= | awk '{print $1}')
+		GRAPH2=$(echo ${GRAPHS} | cut -f3 -d= | awk '{print $1}')
+		GRAPH1=${GRAPH1##*/}
+		GRAPH2=${GRAPH2##*/}
+		GRAPH1=${GRAPH1//.png/-week.png}
+		GRAPH2=${GRAPH2//.png/-week.png}
+		echo "<h3>${VAR}</h3>" >> ${IDX}
+		echo "<p> <img src=\"${GRAPH1}\" alt="${GRAPH1}" /> </p>" >> ${IDX}
+		echo "<br />" >> ${IDX}
+		echo "<h3>${VAR}</h3>" >> ${IDX}
+		echo "<p> <img src=\"${GRAPH2}\" alt="${GRAPH2}" /> </p>" >> ${IDX}
+		
+	elif [ -z "${i##*fping*}" ]
+	then
+		if [ -z "${PINGS}" ];
+		then
+			echo "Need IP for fping, add to PINGS variable"
+			exit 1
+		fi
+		for IP in ${PINGS}
+		do
+			GRAPHNAME=$($i debug ${IP} | grep GRAPHNAME | cut -f 2 -d= )
+			VAR=${i%%.*}
+			echo "<h3>${VAR}</h3>" >> ${IDX}
+			GRAPHNAME=${GRAPHNAME##*/}
+ 			GRAPHNAME=${GRAPHNAME//.png/-week.png}
+ 			echo "<p> <img src=\"${GRAPHNAME}\" alt="${GRAPHNAME}" /> </p>" >> ${IDX}
+			echo "<br />" >> ${IDX}
+		done
+	elif [ -z "${i##*webpage*}" ]
+	then
+		GRAPHNAMES=$($i debug ${IP} | grep GRAPHNAME | cut -f 2 -d= )
+		for GRAPHNAME in ${GRAPHNAMES}
+		do
+			VAR=${i%%.*}
+			echo "<h3>${VAR}</h3>" >> ${IDX}
+			GRAPHNAME=${GRAPHNAME##*/}
+			GRAPHNAME=${GRAPHNAME//.png/-week.png}
+			echo "<p> <img src=\"${GRAPHNAME}\" alt="${GRAPHNAME}" /> </p>" >> ${IDX}
+			echo "<br />" >> ${IDX}
+		done
+
+	elif [ -z "${i##*sitestats*}" ]
+	then
+		echo "<h3>Other Plugbox Stats</h3>" >> ${IDX}
+		$i graph >> ${IDX}
+
+	else
+		GRAPHNAME=$($i debug | grep GRAPHNAME | cut -f 2 -d= )
+		VAR=${i%%.*}
+		echo "<h3>${VAR}</h3>" >> ${IDX}
+		GRAPHNAME=${GRAPHNAME##*/}
+		GRAPHNAME=${GRAPHNAME//.png/-week.png}
+		echo "<p> <img src=\"${GRAPHNAME}\" alt="${GRAPHNAME}" /> </p>" >> ${IDX}
+		echo "<br />" >> ${IDX}
+	fi
+done
+
+echo "</body>" >> ${IDX}
+echo "</html>" >> ${IDX}
+
+}
+
+# -- monthly
+
+reindex_monthly() {
+
+IDX=${WEBROOT}/monthly.html
+
+cat >${IDX} <<EOF
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en" dir="ltr">
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+		<meta http-equiv="Content-Style-Type" content="text/css" />
+		<meta http-equiv="Refresh" content="3600" />
+		<meta http-equiv="Pragma" content="no-cache" />
+		<meta http-equiv="Cache-Control" content="no-cache" />
+		<link rel="shortcut icon" href="" />
+		<title> Real time Statistics </title>
+	</head>
+<body>
+<p>
+	I provide multiple statistics showing the general health of this server.
+	All statistics are gathered once a minute and the charts are redrawn every hour.
+	Additionally, this page is automatically reloaded every hour.
+</p>
+EOF
+
+echo "<p><center>" >>${IDX}
+if [ -r ${WEBROOT}/index.html ]
+then
+	echo "&nbsp;&nbsp;&nbsp;<a href=\"index.html\">Stats roundup</a>&nbsp;&nbsp;&nbsp;" >>${IDX}
+fi
+if [ -r ${WEBROOT}/weekly.html ]
+then
+	echo "&nbsp;&nbsp;&nbsp;<a href=\"weekly.html\">Weekly stats roundup</a>&nbsp;&nbsp;&nbsp;" >>${IDX}
+fi
+if [ -r ${WEBROOT}/yearly.html ]
+then
+	echo "&nbsp;&nbsp;&nbsp;<a href=\"yearly.html\">Yearly stats roundup</a>&nbsp;&nbsp;&nbsp;" >>${IDX}
+fi
+echo "</center></p><hr>" >>${IDX}
+
+for i in ${PROGS}
+do
+	if [ -z "${i##*load*}" ]
+	then
+		GRAPHS=$($i debug | grep GRAPH)
+		VAR=${i%%.*}
+		GRAPH1=$(echo ${GRAPHS} | cut -f2 -d= | awk '{print $1}')
+		GRAPH2=$(echo ${GRAPHS} | cut -f3 -d= | awk '{print $1}')
+		GRAPH1=${GRAPH1##*/}
+		GRAPH2=${GRAPH2##*/}
+		GRAPH1=${GRAPH1//.png/-month.png}
+		GRAPH2=${GRAPH2//.png/-month.png}
+		echo "<h3>${VAR}</h3>" >> ${IDX}
+		echo "<p> <img src=\"${GRAPH1}\" alt="${GRAPH1}" /> </p>" >> ${IDX}
+		echo "<br />" >> ${IDX}
+		echo "<h3>${VAR}</h3>" >> ${IDX}
+		echo "<p> <img src=\"${GRAPH2}\" alt="${GRAPH2}" /> </p>" >> ${IDX}
+		
+	elif [ -z "${i##*fping*}" ]
+	then
+		if [ -z "${PINGS}" ];
+		then
+			echo "Need IP for fping, add to PINGS variable"
+			exit 1
+		fi
+		for IP in ${PINGS}
+		do
+			GRAPHNAME=$($i debug ${IP} | grep GRAPHNAME | cut -f 2 -d= )
+			VAR=${i%%.*}
+			echo "<h3>${VAR}</h3>" >> ${IDX}
+			GRAPHNAME=${GRAPHNAME##*/}
+ 			GRAPHNAME=${GRAPHNAME//.png/-month.png}
+ 			echo "<p> <img src=\"${GRAPHNAME}\" alt="${GRAPHNAME}" /> </p>" >> ${IDX}
+			echo "<br />" >> ${IDX}
+		done
+	elif [ -z "${i##*webpage*}" ]
+	then
+		GRAPHNAMES=$($i debug ${IP} | grep GRAPHNAME | cut -f 2 -d= )
+		for GRAPHNAME in ${GRAPHNAMES}
+		do
+			VAR=${i%%.*}
+			echo "<h3>${VAR}</h3>" >> ${IDX}
+			GRAPHNAME=${GRAPHNAME##*/}
+			GRAPHNAME=${GRAPHNAME//.png/-month.png}
+			echo "<p> <img src=\"${GRAPHNAME}\" alt="${GRAPHNAME}" /> </p>" >> ${IDX}
+			echo "<br />" >> ${IDX}
+		done
+
+	elif [ -z "${i##*sitestats*}" ]
+	then
+		echo "<h3>Other Plugbox Stats</h3>" >> ${IDX}
+		$i graph >> ${IDX}
+
+	else
+		GRAPHNAME=$($i debug | grep GRAPHNAME | cut -f 2 -d= )
+		VAR=${i%%.*}
+		echo "<h3>${VAR}</h3>" >> ${IDX}
+		GRAPHNAME=${GRAPHNAME##*/}
+		GRAPHNAME=${GRAPHNAME//.png/-month.png}
+		echo "<p> <img src=\"${GRAPHNAME}\" alt="${GRAPHNAME}" /> </p>" >> ${IDX}
+		echo "<br />" >> ${IDX}
+	fi
+done
+
+echo "</body>" >> ${IDX}
+echo "</html>" >> ${IDX}
+
+}
+
+# -- yearly
+
+reindex_yearly() {
+
+IDX=${WEBROOT}/yearly.html
+
+cat >${IDX} <<EOF
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en" dir="ltr">
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+		<meta http-equiv="Content-Style-Type" content="text/css" />
+		<meta http-equiv="Refresh" content="14400" />
+		<meta http-equiv="Pragma" content="no-cache" />
+		<meta http-equiv="Cache-Control" content="no-cache" />
+		<link rel="shortcut icon" href="" />
+		<title> Real time Statistics </title>
+	</head>
+<body>
+<p>
+	I provide multiple statistics showing the general health of this server.
+	All statistics are gathered once a minute and the charts are redrawn every 4 hours.
+	Additionally, this page is automatically reloaded every 4 hours.
+</p>
+EOF
+
+echo "<p><center>" >>${IDX}
+if [ -r ${WEBROOT}/index.html ]
+then
+	echo "&nbsp;&nbsp;&nbsp;<a href=\"index.html\">Stats roundup</a>&nbsp;&nbsp;&nbsp;" >>${IDX}
+fi
+if [ -r ${WEBROOT}/weekly.html ]
+then
+	echo "&nbsp;&nbsp;&nbsp;<a href=\"weekly.html\">Weekly stats roundup</a>&nbsp;&nbsp;&nbsp;" >>${IDX}
+fi
+if [ -r ${WEBROOT}/monthly.html ]
+then
+	echo "&nbsp;&nbsp;&nbsp;<a href=\"monthly.html\">Monthly stats roundup</a>&nbsp;&nbsp;&nbsp;" >>${IDX}
+fi
+echo "</center></p><hr>" >>${IDX}
+
+for i in ${PROGS}
+do
+	if [ -z "${i##*load*}" ]
+	then
+		GRAPHS=$($i debug | grep GRAPH)
+		VAR=${i%%.*}
+		GRAPH1=$(echo ${GRAPHS} | cut -f2 -d= | awk '{print $1}')
+		GRAPH2=$(echo ${GRAPHS} | cut -f3 -d= | awk '{print $1}')
+		GRAPH1=${GRAPH1##*/}
+		GRAPH2=${GRAPH2##*/}
+		GRAPH1=${GRAPH1//.png/-year.png}
+		GRAPH2=${GRAPH2//.png/-year.png}
+		echo "<h3>${VAR}</h3>" >> ${IDX}
+		echo "<p> <img src=\"${GRAPH1}\" alt="${GRAPH1}" /> </p>" >> ${IDX}
+		echo "<br />" >> ${IDX}
+		echo "<h3>${VAR}</h3>" >> ${IDX}
+		echo "<p> <img src=\"${GRAPH2}\" alt="${GRAPH2}" /> </p>" >> ${IDX}
+		
+	elif [ -z "${i##*fping*}" ]
+	then
+		if [ -z "${PINGS}" ];
+		then
+			echo "Need IP for fping, add to PINGS variable"
+			exit 1
+		fi
+		for IP in ${PINGS}
+		do
+			GRAPHNAME=$($i debug ${IP} | grep GRAPHNAME | cut -f 2 -d= )
+			VAR=${i%%.*}
+			echo "<h3>${VAR}</h3>" >> ${IDX}
+			GRAPHNAME=${GRAPHNAME##*/}
+ 			GRAPHNAME=${GRAPHNAME//.png/-year.png}
+ 			echo "<p> <img src=\"${GRAPHNAME}\" alt="${GRAPHNAME}" /> </p>" >> ${IDX}
+			echo "<br />" >> ${IDX}
+		done
+	elif [ -z "${i##*webpage*}" ]
+	then
+		GRAPHNAMES=$($i debug ${IP} | grep GRAPHNAME | cut -f 2 -d= )
+		for GRAPHNAME in ${GRAPHNAMES}
+		do
+			VAR=${i%%.*}
+			echo "<h3>${VAR}</h3>" >> ${IDX}
+			GRAPHNAME=${GRAPHNAME##*/}
+			GRAPHNAME=${GRAPHNAME//.png/-year.png}
+			echo "<p> <img src=\"${GRAPHNAME}\" alt="${GRAPHNAME}" /> </p>" >> ${IDX}
+			echo "<br />" >> ${IDX}
+		done
+
+	elif [ -z "${i##*sitestats*}" ]
+	then
+		echo "<h3>Other Plugbox Stats</h3>" >> ${IDX}
+		$i graph >> ${IDX}
+
+	else
+		GRAPHNAME=$($i debug | grep GRAPHNAME | cut -f 2 -d= )
+		VAR=${i%%.*}
+		echo "<h3>${VAR}</h3>" >> ${IDX}
+		GRAPHNAME=${GRAPHNAME##*/}
+		GRAPHNAME=${GRAPHNAME//.png/-year.png}
+		echo "<p> <img src=\"${GRAPHNAME}\" alt="${GRAPHNAME}" /> </p>" >> ${IDX}
+		echo "<br />" >> ${IDX}
+	fi
+done
+
+echo "</body>" >> ${IDX}
+echo "</html>" >> ${IDX}
+
+}
+
+do_updates()
+{
+	for i in ${PROGS}; 
+	do
+		if [ -z "${i##*fping*}" ]
+		then
+			for IP in ${PINGS}
+			do
+				${i} update ${IP} >/dev/null 2>&1
+			done
+		else
+			${i} update >/dev/null 2>&1
+		fi
+	done
+}
+
+do_debugs()
+{
+	for i in ${PROGS}; 
+	do
+		if [ -z "${i##*fping*}" ]
+		then
+			for IP in ${PINGS}
+			do
+				${i} debug ${IP}
+			done
+		else
+			${i} debug
+		fi
+		echo "---"
+	done
+}
+
+do_create()
+{
+	if [ "${1}" == "force" ]
+	then
+	echo "Warning, this will erase any existing RRD databases"
+	echo "press ctrl-c now, or wait 10 seconds...."
+	sleep 10
+
+	fi
+		
+	for i in ${PROGS}; 
+	do
+		if [ -z "${i##*fping*}" ]
+		then
+			for IP in ${PINGS}
+			do
+				${i} create ${IP} >/dev/null 2>&1
+			done
+		else
+			${i} create >/dev/null 2>&1
+		fi
+	done
+}
+
+do_graphs()
+{
+	if [ -n "${1}" ]
+	then
+		RANGE="-${1}"
+	else
+		RANGE=""
+	fi
+
+	for i in ${PROGS}; 
+	do
+		if [ -z "${i##*fping*}" ]
+		then
+			for IP in ${PINGS}
+			do
+				${i} graph${RANGE} ${IP} >/dev/null 2>&1
+			done
+		else
+			${i} graph${RANGE} >/dev/null 2>&1
+		fi
+	done
+}
+
+do_auto()
+{
+	# Flow through, because we want a maximum of everything to happen!
+
+	#Every minute (crontab calls us no more than once a minute anyway)
+	do_updates
+
+	#TS is in seconds, so 5 minutes is 300s
+	if [ 0 -eq $((TS % 300)) ]
+	then
+		do_graphs
+	fi
+	
+	#...10 minutes is 300s
+	if [ 0 -eq $((TS % 600)) ]
+	then
+		do_graphs weekly
+	fi
+	
+	#...60 minutes is 3600s
+	if [ 0 -eq $((TS % 3600)) ]
+	then
+		do_graphs monthly
+	fi
+
+	#...240 minutes is 14400s
+	if [ 0 -eq $((TS % 14400)) ]
+	then
+		do_graphs yearly
+	fi
+
+	if [ 0 -eq $((TS % 86400)) ]
+	then
+		reindex_yearly
+		reindex_monthly
+		reindex_weekly
+		reindex
+	fi
+
+
+}
+###########################################
+#  Main program
+
+if [ -z "${PROGS##*fping*}" ]
+then
+	if [ -z "${PINGS}" ];
+	then
+		echo "Need IP for fping, add to PINGS variable"
+		exit 1
+	fi
+fi
+
+case $CMD in
+	(debug) do_debugs
+		;;
+	(force-create) do_create force
+		;;
+	(create) do_create
+		;;
+	(update) do_updates
+		;;
+	(graph) do_graphs
+		;;
+	(graph-weekly) do_graphs weekly
+		;;
+	(graph-monthly) do_graphs monthly
+		;;
+	(graph-yearly) do_graphs yearly
+		;;
+	(reindex) reindex
+		;;
+	(reindex-weekly) reindex_weekly
+		;;
+	(reindex-monthly) reindex_monthly
+		;;
+	(reindex-yearly) reindex_yearly
+		;;
+	(auto) do_auto
+		;;
+	(*) usage
+		exit 1
+		;;
+esac
+
