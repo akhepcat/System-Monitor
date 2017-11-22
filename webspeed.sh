@@ -3,9 +3,12 @@
 
 #RRDLIB=""
 #WEBROOT=""
+SITECACHE=""
 
 EVERY=5	# Change this to poll every  X minutes: RRD still based on 1-minute polls,
 		# with in-between samples cached in $POLLCACHE
+
+[[ -r "local.overrides" ]] && source local.overrides
 
 #####################
 PUSER="${USER}"
@@ -48,7 +51,7 @@ case $CMD in
 		if [ $NOW -eq 1 ];
 		then
 			echo "Generating poll..."
-			echo "BPS=$(page_load_time.pl http://plugbase.gci.net/webpull/www.cnn.com/)"
+			echo "BPS=$(page_load_time.pl ${SITECACHE})"
 		else
 			echo "Cached poll...."
 			echo "BPS=${CACHE:-0}"
@@ -79,7 +82,7 @@ case $CMD in
 	(update)
 		if [ $NOW -eq 1 ];
 		then
-			BPS=$(page_load_time.pl http://plugbase.gci.net/webpull/www.cnn.com/)
+			BPS=$(page_load_time.pl ${SITECACHE})
 			echo ${BPS} > ${POLLCACHE} 2>/dev/null
 		else
 			BPS=${CACHE:-0}

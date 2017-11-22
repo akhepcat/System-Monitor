@@ -1,10 +1,12 @@
 #!/bin/bash
 #
 
-URLS="http://portal.gci.net/index.html http://whatsmyip.gci.net/index.html"
-
 #RRDLIB=""
 #WEBROOT=""
+URLS=""
+
+[[ -r "local.overrides" ]] && source local.overrides
+
 
 #####################
 PUSER="${USER}"

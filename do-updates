@@ -4,7 +4,9 @@ export WEBROOT=/srv/http/sitestats
 export PATH=$PATH:/root/bin
 
 PROGS="uptime.sh load.sh memory.sh eth0.sh speedtest.sh webspeed.sh" #sitestats.sh sda1.sh fping.sh webpage.sh
-PINGS="209.165.128.244 209.165.129.229"	#used by fping.sh
+PINGS="8.8.8.8 9.9.9.9"	#used by fping.sh
+
+[[ -r "local.overrides" ]] && source local.overrides
 
 HOUR=$(date +"%-H")	# we don't want zero-padded
 MIN=$(date +"%-M")	# ^^^
@@ -90,7 +92,7 @@ do
 		
 	elif [ -z "${i##*sitestats*}" ]
 	then
-		echo "<h3>Other Plugbox Stats</h3>" >> ${IDX}
+		echo "<h3>Other System Stats</h3>" >> ${IDX}
 		$i graph >> ${IDX}
 
 	elif [ -z "${i##*fping*}" ]
@@ -225,7 +227,7 @@ do
 
 	elif [ -z "${i##*sitestats*}" ]
 	then
-		echo "<h3>Other Plugbox Stats</h3>" >> ${IDX}
+		echo "<h3>Other System Stats</h3>" >> ${IDX}
 		$i graph >> ${IDX}
 
 	else
@@ -335,7 +337,7 @@ do
 
 	elif [ -z "${i##*sitestats*}" ]
 	then
-		echo "<h3>Other Plugbox Stats</h3>" >> ${IDX}
+		echo "<h3>Other System Stats</h3>" >> ${IDX}
 		$i graph >> ${IDX}
 
 	else
@@ -445,7 +447,7 @@ do
 
 	elif [ -z "${i##*sitestats*}" ]
 	then
-		echo "<h3>Other Plugbox Stats</h3>" >> ${IDX}
+		echo "<h3>Other System Stats</h3>" >> ${IDX}
 		$i graph >> ${IDX}
 
 	else

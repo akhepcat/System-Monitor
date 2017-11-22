@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-#  Just hardlink this file to the name of your drives, and it'll auto-set
+#  graphs the system load
 #
 
 #RRDLIB=""
