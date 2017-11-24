@@ -1,12 +1,15 @@
 #!/bin/bash
-export RRDLIB=/srv/rrds
-export WEBROOT=/srv/http/sitestats
-export PATH=$PATH:/root/bin
 
-PROGS="uptime.sh load.sh memory.sh eth0.sh speedtest.sh webspeed.sh" #sitestats.sh sda1.sh fping.sh webpage.sh
-PINGS="8.8.8.8 9.9.9.9"	#used by fping.sh
+RRDLIB=/srv/rrds
+WEBROOT=/srv/http/sitestats
+PROGS="uptime.sh load.sh memory.sh eth0.sh speedtest.sh fping.sh webpage.sh" #webspeed.sh #sitestats.sh sda1.sh
+PINGS="8.8.8.8 9.9.9.9"
 
-[[ -r "local.overrides" ]] && source local.overrides
+[[ -r "/etc/default/sysmon.conf" ]] && source /etc/default/sysmon.conf
+
+export PATH=$PATH:${SCRIPTHOME}
+export RRDLIB
+export WEBROOT
 
 HOUR=$(date +"%-H")	# we don't want zero-padded
 MIN=$(date +"%-M")	# ^^^
