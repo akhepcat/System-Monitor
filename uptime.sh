@@ -1,6 +1,5 @@
 #!/bin/bash
 
-#WEBROOT=""
 if [ -r /usr/share/fonts/misc/unifont.bdf ]
 then
 	FONT="-font /usr/share/fonts/misc/unifont.bdf"

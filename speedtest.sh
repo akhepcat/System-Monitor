@@ -1,16 +1,13 @@
 #!/bin/bash
 #
 
-#RRDLIB=""
-#WEBROOT=""
-
 #####################
 PUSER="${USER}"
 PROG="${0##*/}"
 MYHOST="$(uname -n)"
 PROGNAME=${PROG%%.*}
 DATE=$(date)
-POLLCACHE=/tmp/speedtest.cache
+POLLCACHE=$(mktemp /tmp/speedtest.XXXXXXXX)
 CACHE=$(cat ${POLLCACHE} 2>/dev/null)
 # Values are in seconds, for  "--end now --start end-${DATE}"
 # yesterday, plus 4 hours

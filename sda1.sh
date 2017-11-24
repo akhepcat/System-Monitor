@@ -3,8 +3,6 @@
 #  Just hardlink this file to the name of your drives, and it'll auto-set
 #
 
-#RRDLIB=""
-#WEBROOT=""
 # Values are in seconds, for  "--end now --start end-${DATE}"
 # yesterday, plus 4 hours
 YESTERDAY=90000

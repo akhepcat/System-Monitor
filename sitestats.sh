@@ -1,6 +1,7 @@
 #!/bin/bash
 
-#WEBROOT="/var/www/sitestats"
+# This is an example of a custom script
+# it simply indexes a bunch of remote graphs
 
 #####################
 PUSER="${USER}"

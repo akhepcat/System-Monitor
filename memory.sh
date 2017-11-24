@@ -1,8 +1,6 @@
 #!/bin/bash
 #
 
-#RRDLIB=""
-#WEBROOT=""
 # Values are in seconds, for  "--end now --start end-${DATE}"
 # yesterday, plus 4 hours
 YESTERDAY=90000
