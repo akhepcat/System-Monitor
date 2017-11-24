@@ -1,12 +1,7 @@
 #!/bin/bash
 #
 
-#RRDLIB=""
-#WEBROOT=""
-URLS=""
-
-[[ -r "local.overrides" ]] && source local.overrides
-
+[[ -r "/etc/default/sysmon.conf" ]] && source /etc/default/sysmon.conf
 
 #####################
 PUSER="${USER}"

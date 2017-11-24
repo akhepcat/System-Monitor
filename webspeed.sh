@@ -1,14 +1,10 @@
 #!/bin/bash
 #
 
-#RRDLIB=""
-#WEBROOT=""
-SITECACHE=""
-
 EVERY=5	# Change this to poll every  X minutes: RRD still based on 1-minute polls,
 		# with in-between samples cached in $POLLCACHE
 
-[[ -r "local.overrides" ]] && source local.overrides
+[[ -r "/etc/default/sysmon.conf" ]] && source /etc/default/sysmon.conf
 
 #####################
 PUSER="${USER}"
