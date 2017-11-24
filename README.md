@@ -11,4 +11,6 @@ Collection of scripts that monitor a system or network.
 * memory.sh: displays the system memory information  
 * load.sh: displays the system CPU utilization  
 * sitestats.sh: internal script for rebuilding the web indices  
+*  
+* sysmon.conf:  placed in /etc/default, defines/overrides the script parameters  
 
