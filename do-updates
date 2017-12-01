@@ -590,6 +590,42 @@ do_auto()
 
 
 }
+
+check_prereqs() {
+
+	if [ -z "$(command -v rrdtool)" ];
+	then
+		REQS="${REQS:+$REQS }rrdtool"
+	fi
+	if [ -z "$(command -v ifconfig)" ];
+	then
+		REQS="net-tools(ifconfig)"
+	fi
+	if [ -z "$(command -v wget)" ];
+	then
+		REQS="${REQS:+$REQS }wget"
+	fi
+	if [ -z "$(command -v pbmtext)" ];
+	then
+		REQS="${REQS:+$REQS }netpbm"
+	fi
+
+	if [ -z "$(command -v fping)" ];
+	then
+		REQS="${REQS:+$REQS }fping"
+	fi
+
+	if [ -n "${REQS}" ]
+	then
+		echo "Couldn't find these prerequisites:"
+		echo "        ${REQS}"
+		echo ""
+		echo "install them using your favorite package manager before continuing"
+		echo ""
+		exit 1
+	fi
+}
+
 ###########################################
 #  Main program
 
@@ -601,6 +637,8 @@ then
 		exit 1
 	fi
 fi
+
+check_prereqs
 
 case $CMD in
 	(debug) do_debugs
