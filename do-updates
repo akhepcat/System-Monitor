@@ -7,7 +7,7 @@ PINGS="8.8.8.8 9.9.9.9"
 
 [[ -r "/etc/default/sysmon.conf" ]] && source /etc/default/sysmon.conf
 
-export PATH=$PATH:${SCRIPTHOME}
+export PATH=$PATH:/sbin:/usr/sbin:${SCRIPTHOME}
 export RRDLIB
 export WEBROOT
 
