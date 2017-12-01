@@ -39,7 +39,7 @@ case ${CMD} in
 		echo "WEBROOT=${WEBROOT}"
 		echo "RRDFILE=${RRDFILE}"
 		echo "GRAPHNAME=${GRAPHNAME}"
-		echo N=$(/sbin/ifconfig ${IFACE} | gawk 'match($0,/RX bytes:/) { print $(NF-6)":"$(NF-2) }; match($0,/RX.*bytes /) { print $(NF-2) }; match($0,/TX.*bytes /) { print $(NF-2) };' | tr '\n' ':' | sed 's/:$//g;')
+		echo N=$(/sbin/ifconfig ${IFACE} | gawk 'match($0,/RX bytes:/) { print $(NF-6)":"$(NF-2) }; match($0,/RX.*bytes /) { print $(NF-2) }; match($0,/TX.*bytes /) { print $(NF-2) };' | tr '\n' ':' | sed 's/:$//g; s/bytes://g;')
 		;;
 
         (force-create|create)
