@@ -3,6 +3,8 @@
 #  Just hardlink this file to the name of your interface, and it'll auto-set
 #
 
+[[ -r "/etc/default/sysmon.conf" ]] && source /etc/default/sysmon.conf
+
 # Values are in seconds, for  "--end now --start end-${DATE}"
 # yesterday, plus 4 hours
 YESTERDAY=90000
@@ -37,7 +39,7 @@ case ${CMD} in
 		echo "WEBROOT=${WEBROOT}"
 		echo "RRDFILE=${RRDFILE}"
 		echo "GRAPHNAME=${GRAPHNAME}"
-		echo N=$(/sbin/ifconfig ${IFACE} | grep "RX bytes" | sed 's/.*RX bytes:\([0-9]*\).*TX bytes:\([0-9]*\).*/\1:\2/i')
+		echo N=$(/sbin/ifconfig ${IFACE} | gawk 'match($0,/RX.*bytes/) { print $(NF-2) }; match($0,/TX.*bytes/) { print $(NF-2) };' | tr '\n' ':' | sed 's/:$//g;')
 		;;
 
         (force-create|create)
@@ -73,7 +75,7 @@ case ${CMD} in
 		;;
 	(update)
 		rrdtool update ${RRDFILE} \
-		N:$(/sbin/ifconfig ${IFACE} | grep "RX bytes" | sed 's/.*RX bytes:\([0-9]*\).*TX bytes:\([0-9]*\).*/\1:\2/i')
+		N=$(/sbin/ifconfig ${IFACE} | gawk 'match($0,/RX.*bytes/) { print $(NF-2) }; match($0,/TX.*bytes/) { print $(NF-2) };' | tr '\n' ':' | sed 's/:$//g;')
 		;;
 	(graph)
     rrdtool graph ${GRAPHNAME} \
