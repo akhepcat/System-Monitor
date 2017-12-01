@@ -12,5 +12,5 @@ Collection of scripts that monitor a system or network.
 * load.sh: displays the system CPU utilization  
 * sitestats.sh: internal script for rebuilding the web indices  
 *  
+* page_load_time.pl:  called from webspeed.sh, used to display the total time to download an entire page with all dependancies  
 * sysmon.conf:  placed in /etc/default, defines/overrides the script parameters  
-
