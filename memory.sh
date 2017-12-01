@@ -67,8 +67,7 @@ case $CMD in
 		rrdtool update ${RRDFILE} \
 		N:$(
 			grep -E '^(Mem|Buff|Cache)' /proc/meminfo | \
-			    sed  'N; {s/MemTotal://; s/kB.*MemFree://;}; N; { s/kB.*Buffers://; }; N; { s/kB.*Cached://; s/kB//; }' | \
-			    gawk '{ print ($1 * 1024)":"(($1 - ($2 + $3 + $4)) * 1024)":"(($2 + $3 + $4) * 1024)}'):$(
+			    gawk 'match($1,/^MemTotal:$/) { print $(NF-1)*1024 }; match($1,/^Buffers:$/) { print $(NF-1)*1024 }; match($1,/^Cached:$/) { print $(NF-1)*1024 };' | tr '\n' ':')$(
 		        grep Swap[TF] /proc/meminfo | \
 			    sed  'N; {s/SwapTotal://; s/kB.*SwapFree://; s/kB//;}'| \
 			    gawk '{ print ($1 * 1024) ":" (($1 - $2) * 1024) ":" ($2 * 1024) }')
