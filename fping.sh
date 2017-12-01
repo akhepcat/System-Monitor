@@ -3,6 +3,8 @@
 #  Just hardlink this file to the name of your drives, and it'll auto-set
 #
 
+[[ -r "/etc/default/sysmon.conf" ]] && source /etc/default/sysmon.conf
+
 USE_FPING=1
 # Values are in seconds, for  "--end now --start end-${DATE}"
 # yesterday, plus 4 hours

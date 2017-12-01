@@ -3,6 +3,8 @@
 #  graphs the system load
 #
 
+[[ -r "/etc/default/sysmon.conf" ]] && source /etc/default/sysmon.conf
+
 # Values are in seconds, for  "--end now --start end-${DATE}"
 # yesterday, plus 4 hours
 YESTERDAY=90000
