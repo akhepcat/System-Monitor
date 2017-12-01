@@ -44,7 +44,7 @@ case $CMD in
 		if [ $NOW -eq 1 ];
 		then
 			echo "Generating poll..."
-			echo "BPS=$(BetterSpeedTest)"
+			echo "BPS=$(BettererSpeedTest)"
 		else
 			echo "Cached poll...."
 			echo "BPS=${CACHE:-0}"
