@@ -110,7 +110,7 @@ do
 		DEF:avgsec=${RRDFILE}:seconds:AVERAGE \
 		COMMENT:"	" \
 		LINE1:seconds\#000000:"page load time" \
-		LINE2:avgsec\#0000cc:"avg load time": \
+		LINE2:avgsec\#0000cc:"avg load time" \
 		COMMENT:"	\j" \
 		COMMENT:"	" \
 		GPRINT:seconds:MIN:"page-load minimum\: %lf" \
@@ -129,7 +129,7 @@ do
 		DEF:avgsec=${RRDFILE}:seconds:AVERAGE \
 		COMMENT:"	" \
 		LINE1:seconds\#000000:"page load time" \
-		LINE2:avgsec\#0000cc:"avg load time": \
+		LINE2:avgsec\#0000cc:"avg load time" \
 		COMMENT:"	\j" \
 		COMMENT:"	" \
 		GPRINT:seconds:MIN:"page-load minimum\: %lf" \
@@ -146,7 +146,7 @@ do
 		DEF:avgsec=${RRDFILE}:seconds:AVERAGE \
 		COMMENT:"	" \
 		LINE1:seconds\#000000:"page load time" \
-		LINE2:avgsec\#0000cc:"avg load time": \
+		LINE2:avgsec\#0000cc:"avg load time" \
 		COMMENT:"	\j" \
 		COMMENT:"	" \
 		GPRINT:seconds:MIN:"page-load minimum\: %lf" \
@@ -163,7 +163,7 @@ do
 		DEF:avgsec=${RRDFILE}:seconds:AVERAGE \
 		COMMENT:"	" \
 		LINE1:seconds\#000000:"page load time" \
-		LINE2:avgsec\#0000cc:"avg load time": \
+		LINE2:avgsec\#0000cc:"avg load time" \
 		COMMENT:"	\j" \
 		COMMENT:"	" \
 		GPRINT:seconds:MIN:"page-load minimum\: %lf" \
