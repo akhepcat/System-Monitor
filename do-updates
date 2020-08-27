@@ -15,6 +15,7 @@ HOUR=$(date +"%-H")	# we don't want zero-padded
 MIN=$(date +"%-M")	# ^^^
 TS=$(( ($HOUR * 3600) + ($MIN * 60) ))
 CMD=$1
+[[ ${TIMING:-0} -eq 1 ]] && tStart=$(date '+%s.%N')
 
 usage () {
 	echo "$0 (debug|create|force-create|reindex|update|graph|auto)"
@@ -672,3 +673,8 @@ case $CMD in
 		;;
 esac
 
+if [ ${TIMING:-0} -eq 1 ]
+then
+	tStop=$(date '+%s.%N')
+	echo "$tStop - $tStart" | bc > /tmp/do-updates.run
+fi
