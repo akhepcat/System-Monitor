@@ -25,7 +25,7 @@ DRIVE=${LDRIVE}	#we might overload this later...
 DATE=$(date)
 
 
-if [ -n "${LDRIVE##[hms]d*}" ]
+if [ -n "${LDRIVE##[hms]d*}" -a -n "${LDRIVE##nvme*}" ]
 then
    # if it's standard drive, fall through, otherwise...
 	if [ "${LDRIVE}" == "rootfs" ]
