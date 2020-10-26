@@ -45,6 +45,7 @@ RRDFILE="${RRDLIB:-.}/${PROGNAME}-${dexcom_username}.rrd"
 GRAPHNAME="${WEBROOT:-.}/${PROGNAME}-${dexcom_username}.png"
 
 bglcache=/run/dexcom-${dexcom_username}.cache
+scache=/run/dexcom-data.cache
 
 # Graph colors
 Bcolor=cc0c00
@@ -53,7 +54,14 @@ Tcolor=000ccc
 Value=89
 Trend=4
 
-dex_update() {
+if [ -r "${scache}" ]
+then
+	session=$(cat "${scache}")
+else
+	session=""
+fi
+
+sess_update() {
 	# Activate a session
 	session=$( curl --silent \
 	        --header "Content-Type: application/json" \
@@ -73,37 +81,61 @@ dex_update() {
 		"${baseurl}/General/LoginPublisherAccountByName" )
 	
 	    session=${result//\"/}
+	fi
+}
 
-	    result=$( curl --silent\
+# Returns JSON formatted data like:
+# [{"DT":"\/Date(1603540578000+0000)\/","ST":"\/Date(1603569378000)\/","Trend":4,"Value":94,"WT":"\/Date(1603569378000)\/"}]
+get_data() {
+	result=$( curl --silent\
 	      --header "Accept: application/json" \
 	      --header "User-Agent: ${useragent}" \
 	      --request POST \
 	      "${baseurl}/Publisher/ReadPublisherLatestGlucoseValues?sessionId=${session}&minutes=1440&maxCount=1")
+}
 
-	# Returns JSON formatted data like:
-	# [{"DT":"\/Date(1603540578000+0000)\/","ST":"\/Date(1603569378000)\/","Trend":4,"Value":94,"WT":"\/Date(1603569378000)\/"}]
-
-	    WT=${result##*,}; WT=${WT##*\(}; WT=${WT%%\)*}
-	    DT=${result%%,*}; DT=${DT##*\(}; DT=${DT%%\)*}
-	    result="\"ST${result##*ST}"
-	    result=${result%%,\"WT*}
-	    ST=${result%%,\"Tren*}; ST=${ST##*\(}; ST=${ST%%\)*}
-	    Value=${result##*,\"Value\":}
-	    result=${result%%,\"Value*}
-	    Trend=${result##*Trend\":}
-
-	# the formula for converting:
-	#    int(json_glucose_reading["WT"][6:][:-2]) / 1000.0
-	#    WT=${WT%%+*}; WT=$((WT/1000)); WT=$(date --date="@${WT}")
-	#    DT=${DT%%+*}; DT=$((DT/1000)); DT=$(date --date="@${DT}")
-	#    ST=${ST%%+*}; ST=$((ST/1000)); ST=$(date --date="@${ST}")
+dex_update() {
+	# Can we get valid data?
+	get_data
 	
-	# This is just for debugging:
-	#    echo "WT=$WT,  Value=${Value}, Trend=${Trend} == ${Trends[$Trend]}"
+	if [ -z "${result}" -o -n "${result##*Trend*Value*}" ]
+	then
+		# looks invalid, so refresh the cache
+		sess_update
+		if [ -z "${session}" ]
+		then
+			# don't know why, but refreshing the session didn't work
+			echo "${PROGNAME}:FATAL:can't establish session"
+			exit 1
+		else
+			# save the session, because now it's valid!
+			echo "${session}" > "${scache}"
+		fi
+		get_data
+
+		# if we get here, the session is valid, whether new or old
+		# so we parse the JSON data... horrible code follows:
+		WT=${result##*,}; WT=${WT##*\(}; WT=${WT%%\)*}
+		DT=${result%%,*}; DT=${DT##*\(}; DT=${DT%%\)*}
+		result="\"ST${result##*ST}"
+		result=${result%%,\"WT*}
+		ST=${result%%,\"Tren*}; ST=${ST##*\(}; ST=${ST%%\)*}
+		Value=${result##*,\"Value\":}
+		result=${result%%,\"Value*}
+		Trend=${result##*Trend\":}
+
+		# the formula for converting:
+		#    int(json_glucose_reading["WT"][6:][:-2]) / 1000.0
+		#    WT=${WT%%+*}; WT=$((WT/1000)); WT=$(date --date="@${WT}")
+		#    DT=${DT%%+*}; DT=$((DT/1000)); DT=$(date --date="@${DT}")
+		#    ST=${ST%%+*}; ST=$((ST/1000)); ST=$(date --date="@${ST}")
+		
+		# This is just for debugging:
+		#    echo "WT=$WT,  Value=${Value}, Trend=${Trend} == ${Trends[$Trend]}"
 
 	else
-	    Value=NaN
-	    Trend=NaN
+		Value=NaN
+		Trend=NaN
 	fi
 }
 
