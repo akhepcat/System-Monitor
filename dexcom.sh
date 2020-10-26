@@ -35,7 +35,11 @@ PROGNAME=${PROG%%.*}
 CMD="$1"
 DATE=$(date)
 
-Trends=( 'None' 'DoubleUp' 'SingleUp' 'FortyFiveUp' 'Flat' 'FortyFiveDown' 'SingleDown' 'DoubleDown' 'NotComputable' 'OutOfRange' )
+# We invert the trends, since that data looks better on the graphs
+#          0         1           2             3            4           5            6           7             8              9
+# Orig=( 'None' 'DoubleUp'   'SingleUp'   'FortyFiveUp'   'Flat'  'FortyFiveDown' 'SingleDown' 'DoubleDown' 'NotComputable' 'OutOfRange' )
+Trends=( 'None' 'DoubleDown' 'SingleDown' 'FortyFiveDown' 'Flat'  'FortyFiveUp'   'SingleUp'   'DoubleUp'   'NotComputable' 'OutOfRange' )
+
 useragent='Dexcom Share/3.0.2.11 CFNetwork/672.0.2 Darwin/14.0.0'
 
 baseurl='https://share2.dexcom.com/ShareWebServices/Services'
@@ -127,6 +131,12 @@ dex_update() {
 	result=${result%%,\"Value*}
 	Trend=${result##*Trend\":}
 
+	if [ $Trend -lt 8 -a $Trend -gt 0 ]
+	then
+		# invert for better visualization of the trends, leaving 0 and 8-9 alone
+		Trend=$(( 8 - Trend ))
+	fi
+
 	# the formula for converting:
 	#    int(json_glucose_reading["WT"][6:][:-2]) / 1000.0
 	#    WT=${WT%%+*}; WT=$((WT/1000)); WT=$(date --date="@${WT}")
@@ -194,28 +204,35 @@ case ${CMD} in
 		;;
 
 	(graph)
-	    
 	    rrdtool graph ${GRAPHNAME} \
 		-Y -u 1.1 -l 0 -L 2 -v "Blood-Glucose level" -w 700 -h 300 -t "${dexcom_username} last 24 hours Blood-Glucose level - ${DATE}" \
 		-c ARROW\#000000 -x MINUTE:30:MINUTE:30:HOUR:1:0:%H \
 		DEF:bgl=${RRDFILE}:bgl:AVERAGE \
 		DEF:trend=${RRDFILE}:trend:AVERAGE \
-		COMMENT:"	" \
-		LINE1:bgl\#${Bcolor}:"BGL average 1 min" \
-		LINE2:trend\#${Tcolor}:"Trend average 1 min" \
-		COMMENT:"	\j" \
-		COMMENT:"	" \
-		GPRINT:bgl:MIN:"  bgl  1 min min\: %3.0lf" \
-		GPRINT:bgl:MAX:"  bgl  1 min max\: %3.0lf" \
-		GPRINT:bgl:AVERAGE:"  bgl  1 min avg\: %1.0lf" \
-		GPRINT:bgl:LAST:"  bgl  1 min cur\: %1.0lf" \
-		COMMENT:"	\j" \
-		COMMENT:"	" \
-		GPRINT:trend:MIN:"Trend  1 min min\: %3.0lf" \
-		GPRINT:trend:MAX:"Trend  1 min max\: %3.0lf" \
-		GPRINT:trend:AVERAGE:"Trend  1 min avg\: %1.0lf" \
-		GPRINT:trend:LAST:"Trend  1 min cur\: %1.0lf" \
-		COMMENT:"	\j"
+		COMMENT:"\t" \
+		LINE1:bgl\#${Bcolor}:" BGL average\t\t\t" \
+		LINE2:trend\#${Tcolor}:" Trend average\t" \
+		COMMENT:"Trending Legend\:" \
+		COMMENT:"\l" \
+		COMMENT:"\t" \
+		GPRINT:bgl:MIN:"  1 min min\: %3.0lf\t\t" \
+		GPRINT:trend:MIN:"  1 min min\: %1.0lf\t\t" \
+		COMMENT:"1-3\: Trending lower" \
+		COMMENT:"\l" \
+		COMMENT:"\t" \
+		GPRINT:bgl:MAX:"  1 min max\: %3.0lf\t\t" \
+		GPRINT:trend:MAX:"  1 min max\: %1.0lf\t\t" \
+		COMMENT:"4\: Trending flat" \
+		COMMENT:"\l" \
+		COMMENT:"\t" \
+		GPRINT:bgl:AVERAGE:"  1 min avg\: %3.0lf\t\t" \
+		GPRINT:trend:AVERAGE:"  1 min avg\: %1.0lf\t\t" \
+		COMMENT:"5-7\: Trending higher" \
+		COMMENT:"\l" \
+		COMMENT:"\t" \
+		GPRINT:bgl:LAST:"    current\: %3.0lf\t\t" \
+		GPRINT:trend:LAST:"    current\: %1.0lf\t" \
+		COMMENT:"\l"
 		;;
 	(graph-weekly)
 	    rrdtool graph ${GRAPHNAME//.png/-week.png} \
@@ -223,20 +240,22 @@ case ${CMD} in
                 --end now --start end-$LASTWEEK -c ARROW\#000000  \
 		DEF:bgl=${RRDFILE}:bgl:AVERAGE \
 		DEF:trend=${RRDFILE}:trend:AVERAGE \
-		COMMENT:"	" \
-		LINE1:bgl\#${Bcolor}:"  bgl average 5 min" \
-		LINE2:trend\#${Tcolor}:"Trend average 5 min" \
-		COMMENT:"	\j" \
-		COMMENT:"	" \
-		GPRINT:bgl:MIN:"  bgl  5 min minimum\: %lf" \
-		GPRINT:bgl:MAX:"  bgl  5 min maximum\: %lf" \
-		GPRINT:bgl:AVERAGE:"  bgl  5 min average\: %lf" \
-		COMMENT:"	\j" \
-		COMMENT:"	" \
-		GPRINT:trend:MIN:"Trend  5 min minimum\: %lf" \
-		GPRINT:trend:MAX:"Trend  5 min maximum\: %lf" \
-		GPRINT:trend:AVERAGE:"Trend  5 min average\: %lf" \
-		COMMENT:"	\j"
+		COMMENT:"\t\t" \
+		LINE1:bgl\#${Bcolor}:" BGL average\t\t\t" \
+		LINE2:trend\#${Tcolor}:" Trend average\t" \
+		COMMENT:"\l" \
+		COMMENT:"\t\t" \
+		GPRINT:bgl:MIN:"  5 min min\: %3.0lf\t\t" \
+		GPRINT:trend:MIN:"  5 min min\: %1.0lf\t" \
+		COMMENT:"\l" \
+		COMMENT:"\t\t" \
+		GPRINT:bgl:MAX:"  5 min max\: %3.0lf\t\t" \
+		GPRINT:trend:MAX:"  5 min max\: %1.0lf\t" \
+		COMMENT:"\l" \
+		COMMENT:"\t\t" \
+		GPRINT:bgl:AVERAGE:"  5 min avg\: %3.0lf\t\t" \
+		GPRINT:trend:AVERAGE:"  5 min avg\: %1.0lf\t" \
+		COMMENT:"\l"
 		;;
 	(graph-monthly)
 	    rrdtool graph ${GRAPHNAME//.png/-month.png} \
@@ -244,20 +263,22 @@ case ${CMD} in
                 --end now --start end-$LASTMONTH -c ARROW\#000000  \
 		DEF:bgl=${RRDFILE}:bgl:AVERAGE \
 		DEF:trend=${RRDFILE}:trend:AVERAGE \
-		COMMENT:"	" \
-		LINE1:bgl\#${Bcolor}:"  bgl average 30 min" \
-		LINE2:trend\#${Tcolor}:"Trend average 30 min" \
-		COMMENT:"	\j" \
-		COMMENT:"	" \
-		GPRINT:bgl:MIN:"  bgl 30 min minimum\: %lf" \
-		GPRINT:bgl:MAX:"  bgl 30 min maximum\: %lf" \
-		GPRINT:bgl:AVERAGE:"  bgl 30 min average\: %lf" \
-		COMMENT:"	\j" \
-		COMMENT:"	" \
-		GPRINT:trend:MIN:"Trend 30 min minimum\: %lf" \
-		GPRINT:trend:MAX:"Trend 30 min maximum\: %lf" \
-		GPRINT:trend:AVERAGE:"Trend 30 min average\: %lf" \
-		COMMENT:"	\j"
+		COMMENT:"\t\t" \
+		LINE1:bgl\#${Bcolor}:" BGL average\t\t\t" \
+		LINE2:trend\#${Tcolor}:" Trend average\t" \
+		COMMENT:"\l" \
+		COMMENT:"\t\t" \
+		GPRINT:bgl:MIN:" 30 min min\: %3.0lf\t\t" \
+		GPRINT:trend:MIN:" 30 min min\: %1.0lf\t" \
+		COMMENT:"\l" \
+		COMMENT:"\t\t" \
+		GPRINT:bgl:MAX:" 30 min max\: %3.0lf\t\t" \
+		GPRINT:trend:MAX:" 30 min max\: %1.0lf\t" \
+		COMMENT:"\l" \
+		COMMENT:"\t\t" \
+		GPRINT:bgl:AVERAGE:" 30 min avg\: %3.0lf\t\t" \
+		GPRINT:trend:AVERAGE:" 30 min avg\: %1.0lf\t" \
+		COMMENT:"\l"
 		;;
 	(graph-yearly)
 	    rrdtool graph ${GRAPHNAME//.png/-year.png} \
@@ -265,20 +286,22 @@ case ${CMD} in
                 --end now --start end-$LASTYEAR -c ARROW\#000000  \
 		DEF:bgl=${RRDFILE}:bgl:AVERAGE \
 		DEF:trend=${RRDFILE}:trend:AVERAGE \
-		COMMENT:"	" \
-		LINE1:bgl\#${Bcolor}:"  bgl average 2 h" \
-		LINE2:trend\#${Tcolor}:"Trend average 2 h" \
-		COMMENT:"	\j" \
-		COMMENT:"	" \
-		GPRINT:bgl:MIN:"  bgl  2 h minimum\: %lf" \
-		GPRINT:bgl:MAX:"  bgl  2 h maximum\: %lf" \
-		GPRINT:bgl:AVERAGE:"  bgl  2 h average\: %lf" \
-		COMMENT:"	\j" \
-		COMMENT:"	" \
-		GPRINT:trend:MIN:"Trend  2 h minimum\: %lf" \
-		GPRINT:trend:MAX:"Trend  2 h maximum\: %lf" \
-		GPRINT:trend:AVERAGE:"Trend  2 h average\: %lf" \
-		COMMENT:"	\j"
+		COMMENT:"\t\t" \
+		LINE1:bgl\#${Bcolor}:" BGL average\t\t\t" \
+		LINE2:trend\#${Tcolor}:" Trend average\t" \
+		COMMENT:"\l" \
+		COMMENT:"\t\t" \
+		GPRINT:bgl:MIN:" 2h min\: %3.0lf\t\t\t" \
+		GPRINT:trend:MIN:" 2h min\: %1.0lf\t" \
+		COMMENT:"\l" \
+		COMMENT:"\t\t" \
+		GPRINT:bgl:MAX:" 2h max\: %3.0lf\t\t\t" \
+		GPRINT:trend:MAX:" 2h max\: %1.0lf\t" \
+		COMMENT:"\l" \
+		COMMENT:"\t\t" \
+		GPRINT:bgl:AVERAGE:" 2h avg\: %3.0lf\t\t\t" \
+		GPRINT:trend:AVERAGE:" 2h avg\: %1.0lf\t" \
+		COMMENT:"\l"
 		;;
 	(*)
 		echo "Invalid option for ${PROGNAME}"
