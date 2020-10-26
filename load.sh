@@ -76,26 +76,31 @@ case ${CMD} in
 		DEF:load1=${RRDFILE}:load1:AVERAGE \
 		DEF:load5=${RRDFILE}:load5:AVERAGE \
 		DEF:load15=${RRDFILE}:load15:AVERAGE \
-		COMMENT:"	" \
+		COMMENT:"\t" \
 		LINE1:load1\#44FF44:"Load average 1 min" \
 		LINE2:load5\#000ccc:"Load average 5 min" \
 		LINE3:load15\#000000:"Load average 15 min" \
-		COMMENT:"	\j" \
-		COMMENT:"	" \
-		GPRINT:load1:MIN:"Load  1 min minimum\: %lf" \
-		GPRINT:load1:MAX:"Load  1 min maximum\: %lf" \
-		GPRINT:load1:AVERAGE:"Load  1 min average\: %lf" \
-		COMMENT:"	\j" \
-		COMMENT:"	" \
-		GPRINT:load5:MIN:"Load  5 min minimum\: %lf" \
-		GPRINT:load5:MAX:"Load  5 min maximum\: %lf" \
-		GPRINT:load5:AVERAGE:"Load  5 min average\: %lf" \
-		COMMENT:"	\j" \
-		COMMENT:"	" \
-		GPRINT:load15:MIN:"Load 15 min minimum\: %lf" \
-		GPRINT:load15:MAX:"Load 15 min maximum\: %lf" \
-		GPRINT:load15:AVERAGE:"Load 15 min average\: %lf" \
-		COMMENT:"	\j"
+		COMMENT:"\t\j" \
+		COMMENT:"\t" \
+		GPRINT:load1:MIN:"  1 min\: %2.2lf" \
+		GPRINT:load5:MIN:"  5 min\: %2.2lf" \
+		GPRINT:load15:MIN:" 15 min\: %2.2lf" \
+		COMMENT:"\t\j" \
+		COMMENT:"\t" \
+		GPRINT:load1:MAX:"  1 max\: %2.2lf" \
+		GPRINT:load5:MAX:"  5 max\: %2.2lf" \
+		GPRINT:load15:MAX:" 15 max\: %2.2lf" \
+		COMMENT:"\t\j" \
+		COMMENT:"\t" \
+		GPRINT:load1:AVERAGE:"  1 avg\: %2.2lf" \
+		GPRINT:load5:AVERAGE:"  5 avg\: %2.2lf" \
+		GPRINT:load15:AVERAGE:" 15 avg\: %2.2lf" \
+		COMMENT:"\t\j" \
+		COMMENT:"\t" \
+		GPRINT:load1:LAST:"current\: %2.2lf" \
+		GPRINT:load5:LAST:"current\: %2.2lf" \
+		GPRINT:load15:LAST:"current\: %2.2lf" \
+		COMMENT:"\t\j"
 	    #		
 	    rrdtool graph ${GRAPHNAME//.png/-cpu.png} \
 		-Y -r -u 100 -l 0 -L 2 -v "CPU usage in %" -w 700 -h 300 -t "${MYHOST} last 24 hours CPU usage - ${DATE}" \
@@ -103,15 +108,17 @@ case ${CMD} in
 		DEF:user=${RRDFILE}:cpuuser:AVERAGE \
 		DEF:nice=${RRDFILE}:cpunice:AVERAGE \
 		DEF:sys=${RRDFILE}:cpusystem:AVERAGE \
-		COMMENT:"	" \
+		COMMENT:"\t" \
 		AREA:user\#FF0000:"CPU user" \
 		STACK:nice\#000099:"CPU nice" \
 		STACK:sys\#FFFF00:"CPU system" \
 		CDEF:cpu=user,nice,sys,+,+ \
-		COMMENT:"	\j" \
-		GPRINT:cpu:MIN:"CPU usage minimum\: %lf%%" \
-		GPRINT:cpu:MAX:"CPU usage maximum\: %lf%%" \
-		GPRINT:cpu:AVERAGE:"CPU usage average\: %lf%%"
+		COMMENT:"\t\j" \
+		COMMENT:"\t" \
+		GPRINT:cpu:MIN:"min usage\: %2.02lf%%" \
+		GPRINT:cpu:MAX:"max usage\: %2.02lf%%" \
+		GPRINT:cpu:AVERAGE:"avg usage\: %2.02lf%%" \
+		COMMENT:"\t\j"
 		;;
 	(graph-weekly)
 	    rrdtool graph ${GRAPHNAME//.png/-load-week.png} \
@@ -120,26 +127,26 @@ case ${CMD} in
                 DEF:load1=${RRDFILE}:load1:AVERAGE \
 		DEF:load5=${RRDFILE}:load5:AVERAGE \
 		DEF:load15=${RRDFILE}:load15:AVERAGE \
-		COMMENT:"	" \
+		COMMENT:"\t" \
 		LINE1:load1\#44FF44:"Load average 1 min" \
 		LINE2:load5\#000ccc:"Load average 5 min" \
 		LINE3:load15\#000000:"Load average 15 min" \
-		COMMENT:"	\j" \
-		COMMENT:"	" \
-		GPRINT:load1:MIN:"Load  1 min minimum\: %lf" \
-		GPRINT:load1:MAX:"Load  1 min maximum\: %lf" \
-		GPRINT:load1:AVERAGE:"Load  1 min average\: %lf" \
-		COMMENT:"	\j" \
-		COMMENT:"	" \
-		GPRINT:load5:MIN:"Load  5 min minimum\: %lf" \
-		GPRINT:load5:MAX:"Load  5 min maximum\: %lf" \
-		GPRINT:load5:AVERAGE:"Load  5 min average\: %lf" \
-		COMMENT:"	\j" \
-		COMMENT:"	" \
-		GPRINT:load15:MIN:"Load 15 min minimum\: %lf" \
-		GPRINT:load15:MAX:"Load 15 min maximum\: %lf" \
-		GPRINT:load15:AVERAGE:"Load 15 min average\: %lf" \
-		COMMENT:"	\j"
+		COMMENT:"\t\j" \
+		COMMENT:"\t" \
+		GPRINT:load1:MIN:"  1 min\: %2.2lf" \
+		GPRINT:load5:MIN:"  5 min\: %2.2lf" \
+		GPRINT:load15:MIN:" 15 min\: %2.2lf" \
+		COMMENT:"\t\j" \
+		COMMENT:"\t" \
+		GPRINT:load1:MAX:"  1 max\: %2.2lf" \
+		GPRINT:load5:MAX:"  5 max\: %2.2lf" \
+		GPRINT:load15:MAX:" 15 max\: %2.2lf" \
+		COMMENT:"\t\j" \
+		COMMENT:"\t" \
+		GPRINT:load1:AVERAGE:"  1 avg\: %2.2lf" \
+		GPRINT:load5:AVERAGE:"  5 avg\: %2.2lf" \
+		GPRINT:load15:AVERAGE:" 15 avg\: %2.2lf" \
+		COMMENT:"\t\j"
 	    #		
 	    rrdtool graph ${GRAPHNAME//.png/-cpu-week.png} \
 		-Y -r -u 100 -l 0 -L 2 -v "CPU usage in %" -w 700 -h 300 -t "${MYHOST} last 7 days CPU usage - ${DATE}" \
@@ -147,15 +154,17 @@ case ${CMD} in
                 DEF:user=${RRDFILE}:cpuuser:AVERAGE \
 		DEF:nice=${RRDFILE}:cpunice:AVERAGE \
 		DEF:sys=${RRDFILE}:cpusystem:AVERAGE \
-		COMMENT:"	" \
+		COMMENT:"\t" \
 		AREA:user\#FF0000:"CPU user" \
 		STACK:nice\#000099:"CPU nice" \
 		STACK:sys\#FFFF00:"CPU system" \
 		CDEF:cpu=user,nice,sys,+,+ \
-		COMMENT:"	\j" \
-		GPRINT:cpu:MIN:"CPU usage minimum\: %lf%%" \
-		GPRINT:cpu:MAX:"CPU usage maximum\: %lf%%" \
-		GPRINT:cpu:AVERAGE:"CPU usage average\: %lf%%"
+		COMMENT:"\t\j" \
+		COMMENT:"\t" \
+		GPRINT:cpu:MIN:"min usage\: %2.02lf%%" \
+		GPRINT:cpu:MAX:"max usage\: %2.02lf%%" \
+		GPRINT:cpu:AVERAGE:"avg usage\: %2.02lf%%" \
+		COMMENT:"\t\j"
 		;;
 	(graph-monthly)
 	    rrdtool graph ${GRAPHNAME//.png/-load-month.png} \
@@ -164,26 +173,26 @@ case ${CMD} in
                 DEF:load1=${RRDFILE}:load1:AVERAGE \
 		DEF:load5=${RRDFILE}:load5:AVERAGE \
 		DEF:load15=${RRDFILE}:load15:AVERAGE \
-		COMMENT:"	" \
+		COMMENT:"\t" \
 		LINE1:load1\#44FF44:"Load average 1 min" \
 		LINE2:load5\#000ccc:"Load average 5 min" \
 		LINE3:load15\#000000:"Load average 15 min" \
-		COMMENT:"	\j" \
-		COMMENT:"	" \
-		GPRINT:load1:MIN:"Load  1 min minimum\: %lf" \
-		GPRINT:load1:MAX:"Load  1 min maximum\: %lf" \
-		GPRINT:load1:AVERAGE:"Load  1 min average\: %lf" \
-		COMMENT:"	\j" \
-		COMMENT:"	" \
-		GPRINT:load5:MIN:"Load  5 min minimum\: %lf" \
-		GPRINT:load5:MAX:"Load  5 min maximum\: %lf" \
-		GPRINT:load5:AVERAGE:"Load  5 min average\: %lf" \
-		COMMENT:"	\j" \
-		COMMENT:"	" \
-		GPRINT:load15:MIN:"Load 15 min minimum\: %lf" \
-		GPRINT:load15:MAX:"Load 15 min maximum\: %lf" \
-		GPRINT:load15:AVERAGE:"Load 15 min average\: %lf" \
-		COMMENT:"	\j"
+		COMMENT:"\t\j" \
+		COMMENT:"\t" \
+		GPRINT:load1:MIN:"  1 min\: %2.2lf" \
+		GPRINT:load5:MIN:"  5 min\: %2.2lf" \
+		GPRINT:load15:MIN:" 15 min\: %2.2lf" \
+		COMMENT:"\t\j" \
+		COMMENT:"\t" \
+		GPRINT:load1:MAX:"  1 max\: %2.2lf" \
+		GPRINT:load5:MAX:"  5 max\: %2.2lf" \
+		GPRINT:load15:MAX:" 15 max\: %2.2lf" \
+		COMMENT:"\t\j" \
+		COMMENT:"\t" \
+		GPRINT:load1:AVERAGE:"  1 avg\: %2.2lf" \
+		GPRINT:load5:AVERAGE:"  5 avg\: %2.2lf" \
+		GPRINT:load15:AVERAGE:" 15 avg\: %2.2lf" \
+		COMMENT:"\t\j"
 	    #		
 	    rrdtool graph ${GRAPHNAME//.png/-cpu-month.png} \
 		-Y -r -u 100 -l 0 -L 2 -v "CPU usage in %" -w 700 -h 300 -t "${MYHOST} last month's CPU usage - ${DATE}" \
@@ -191,15 +200,17 @@ case ${CMD} in
                 DEF:user=${RRDFILE}:cpuuser:AVERAGE \
 		DEF:nice=${RRDFILE}:cpunice:AVERAGE \
 		DEF:sys=${RRDFILE}:cpusystem:AVERAGE \
-		COMMENT:"	" \
+		COMMENT:"\t" \
 		AREA:user\#FF0000:"CPU user" \
 		STACK:nice\#000099:"CPU nice" \
 		STACK:sys\#FFFF00:"CPU system" \
 		CDEF:cpu=user,nice,sys,+,+ \
-		COMMENT:"	\j" \
-		GPRINT:cpu:MIN:"CPU usage minimum\: %lf%%" \
-		GPRINT:cpu:MAX:"CPU usage maximum\: %lf%%" \
-		GPRINT:cpu:AVERAGE:"CPU usage average\: %lf%%"
+		COMMENT:"\t\j" \
+		COMMENT:"\t" \
+		GPRINT:cpu:MIN:"min usage\: %2.02lf%%" \
+		GPRINT:cpu:MAX:"max usage\: %2.02lf%%" \
+		GPRINT:cpu:AVERAGE:"avg usage\: %2.02lf%%" \
+		COMMENT:"\t\j"
 		;;
 	(graph-yearly)
 	    rrdtool graph ${GRAPHNAME//.png/-load-year.png} \
@@ -208,26 +219,26 @@ case ${CMD} in
                 DEF:load1=${RRDFILE}:load1:AVERAGE \
 		DEF:load5=${RRDFILE}:load5:AVERAGE \
 		DEF:load15=${RRDFILE}:load15:AVERAGE \
-		COMMENT:"	" \
+		COMMENT:"\t" \
 		LINE1:load1\#44FF44:"Load average 1 min" \
 		LINE2:load5\#000ccc:"Load average 5 min" \
 		LINE3:load15\#000000:"Load average 15 min" \
-		COMMENT:"	\j" \
-		COMMENT:"	" \
-		GPRINT:load1:MIN:"Load  1 min minimum\: %lf" \
-		GPRINT:load1:MAX:"Load  1 min maximum\: %lf" \
-		GPRINT:load1:AVERAGE:"Load  1 min average\: %lf" \
-		COMMENT:"	\j" \
-		COMMENT:"	" \
-		GPRINT:load5:MIN:"Load  5 min minimum\: %lf" \
-		GPRINT:load5:MAX:"Load  5 min maximum\: %lf" \
-		GPRINT:load5:AVERAGE:"Load  5 min average\: %lf" \
-		COMMENT:"	\j" \
-		COMMENT:"	" \
-		GPRINT:load15:MIN:"Load 15 min minimum\: %lf" \
-		GPRINT:load15:MAX:"Load 15 min maximum\: %lf" \
-		GPRINT:load15:AVERAGE:"Load 15 min average\: %lf" \
-		COMMENT:"	\j"
+		COMMENT:"\t\j" \
+		COMMENT:"\t" \
+		GPRINT:load1:MIN:"  1 min\: %2.2lf" \
+		GPRINT:load5:MIN:"  5 min\: %2.2lf" \
+		GPRINT:load15:MIN:" 15 min\: %2.2lf" \
+		COMMENT:"\t\j" \
+		COMMENT:"\t" \
+		GPRINT:load1:MAX:"  1 max\: %2.2lf" \
+		GPRINT:load5:MAX:"  5 max\: %2.2lf" \
+		GPRINT:load15:MAX:" 15 max\: %2.2lf" \
+		COMMENT:"\t\j" \
+		COMMENT:"\t" \
+		GPRINT:load1:AVERAGE:"  1 avg\: %2.2lf" \
+		GPRINT:load5:AVERAGE:"  5 avg\: %2.2lf" \
+		GPRINT:load15:AVERAGE:" 15 avg\: %2.2lf" \
+		COMMENT:"\t\j"
 	    #		
 	    rrdtool graph ${GRAPHNAME//.png/-cpu-year.png} \
 		-Y -r -u 100 -l 0 -L 2 -v "CPU usage in %" -w 700 -h 300 -t "${MYHOST} last year's CPU usage - ${DATE}" \
@@ -235,15 +246,17 @@ case ${CMD} in
                 DEF:user=${RRDFILE}:cpuuser:AVERAGE \
 		DEF:nice=${RRDFILE}:cpunice:AVERAGE \
 		DEF:sys=${RRDFILE}:cpusystem:AVERAGE \
-		COMMENT:"	" \
+		COMMENT:"\t" \
 		AREA:user\#FF0000:"CPU user" \
 		STACK:nice\#000099:"CPU nice" \
 		STACK:sys\#FFFF00:"CPU system" \
 		CDEF:cpu=user,nice,sys,+,+ \
-		COMMENT:"	\j" \
-		GPRINT:cpu:MIN:"CPU usage minimum\: %lf%%" \
-		GPRINT:cpu:MAX:"CPU usage maximum\: %lf%%" \
-		GPRINT:cpu:AVERAGE:"CPU usage average\: %lf%%"
+		COMMENT:"\t\j" \
+		COMMENT:"\t" \
+		GPRINT:cpu:MIN:"min usage\: %2.02lf%%" \
+		GPRINT:cpu:MAX:"max usage\: %2.02lf%%" \
+		GPRINT:cpu:AVERAGE:"avg usage\: %2.02lf%%" \
+		COMMENT:"\t\j"
 		;;
 	(*)
 		echo "Invalid option for ${PROGNAME}"
