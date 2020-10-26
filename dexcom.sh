@@ -97,7 +97,9 @@ get_data() {
 dex_update() {
 	# Can we get valid data?
 	get_data
-	
+
+	Value=""
+
 	if [ -z "${result}" -o -n "${result##*Trend*Value*}" ]
 	then
 		# looks invalid, so refresh the cache
@@ -105,38 +107,35 @@ dex_update() {
 		if [ -z "${session}" ]
 		then
 			# don't know why, but refreshing the session didn't work
-			echo "${PROGNAME}:FATAL:can't establish session"
-			exit 1
+			Value=NaN
+			Trend=NaN
+			return
 		else
 			# save the session, because now it's valid!
 			echo "${session}" > "${scache}"
 		fi
 		get_data
-
-		# if we get here, the session is valid, whether new or old
-		# so we parse the JSON data... horrible code follows:
-		WT=${result##*,}; WT=${WT##*\(}; WT=${WT%%\)*}
-		DT=${result%%,*}; DT=${DT##*\(}; DT=${DT%%\)*}
-		result="\"ST${result##*ST}"
-		result=${result%%,\"WT*}
-		ST=${result%%,\"Tren*}; ST=${ST##*\(}; ST=${ST%%\)*}
-		Value=${result##*,\"Value\":}
-		result=${result%%,\"Value*}
-		Trend=${result##*Trend\":}
-
-		# the formula for converting:
-		#    int(json_glucose_reading["WT"][6:][:-2]) / 1000.0
-		#    WT=${WT%%+*}; WT=$((WT/1000)); WT=$(date --date="@${WT}")
-		#    DT=${DT%%+*}; DT=$((DT/1000)); DT=$(date --date="@${DT}")
-		#    ST=${ST%%+*}; ST=$((ST/1000)); ST=$(date --date="@${ST}")
-		
-		# This is just for debugging:
-		#    echo "WT=$WT,  Value=${Value}, Trend=${Trend} == ${Trends[$Trend]}"
-
-	else
-		Value=NaN
-		Trend=NaN
 	fi
+	# if we get here, the session is valid, whether new or old
+	# so we parse the JSON data... horrible code follows:
+	WT=${result##*,}; WT=${WT##*\(}; WT=${WT%%\)*}
+	DT=${result%%,*}; DT=${DT##*\(}; DT=${DT%%\)*}
+	result="\"ST${result##*ST}"
+	result=${result%%,\"WT*}
+	ST=${result%%,\"Tren*}; ST=${ST##*\(}; ST=${ST%%\)*}
+	Value=${result##*,\"Value\":}
+	result=${result%%,\"Value*}
+	Trend=${result##*Trend\":}
+
+	# the formula for converting:
+	#    int(json_glucose_reading["WT"][6:][:-2]) / 1000.0
+	#    WT=${WT%%+*}; WT=$((WT/1000)); WT=$(date --date="@${WT}")
+	#    DT=${DT%%+*}; DT=$((DT/1000)); DT=$(date --date="@${DT}")
+	#    ST=${ST%%+*}; ST=$((ST/1000)); ST=$(date --date="@${ST}")
+		
+	# This is just for debugging:
+	#    echo "WT=$WT,  Value=${Value}, Trend=${Trend} == ${Trends[$Trend]}"
+
 }
 
 case ${CMD} in
