@@ -31,7 +31,7 @@ PROGNAME=${PROG%%.*}
 CMD="$1"
 DATE=$(date)
 
-Trends=( 'None', 'DoubleUp', 'SingleUp', 'FortyFiveUp', 'Flat', 'FortyFiveDown', 'SingleDown', 'DoubleDown', 'NotComputable', 'OutOfRange' )
+Trends=( 'None' 'DoubleUp' 'SingleUp' 'FortyFiveUp' 'Flat' 'FortyFiveDown' 'SingleDown' 'DoubleDown' 'NotComputable' 'OutOfRange' )
 useragent='Dexcom Share/3.0.2.11 CFNetwork/672.0.2 Darwin/14.0.0'
 
 baseurl='https://share2.dexcom.com/ShareWebServices/Services'
