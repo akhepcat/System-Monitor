@@ -174,14 +174,16 @@ case ${CMD} in
 		LINE2:trend\#${Tcolor}:"Trend average 1 min" \
 		COMMENT:"	\j" \
 		COMMENT:"	" \
-		GPRINT:bgl:MIN:"bgl  1 min minimum\: %lf" \
-		GPRINT:bgl:MAX:"bgl  1 min current\: %lf" \
-		GPRINT:bgl:AVERAGE:"bgl  1 min average\: %lf" \
+		GPRINT:bgl:MIN:"  bgl  1 min min\: %3.0lf" \
+		GPRINT:bgl:MAX:"  bgl  1 min max\: %3.0lf" \
+		GPRINT:bgl:AVERAGE:"  bgl  1 min avg\: %1.0lf" \
+		GPRINT:bgl:LAST:"  bgl  1 min cur\: %1.0lf" \
 		COMMENT:"	\j" \
 		COMMENT:"	" \
-		GPRINT:trend:MIN:"Trend  1 min minimum\: %lf" \
-		GPRINT:trend:MAX:"Trend  1 min current\: %lf" \
-		GPRINT:trend:AVERAGE:"Trend  1 min average\: %lf" \
+		GPRINT:trend:MIN:"Trend  1 min min\: %3.0lf" \
+		GPRINT:trend:MAX:"Trend  1 min max\: %3.0lf" \
+		GPRINT:trend:AVERAGE:"Trend  1 min avg\: %1.0lf" \
+		GPRINT:trend:LAST:"Trend  1 min cur\: %1.0lf" \
 		COMMENT:"	\j"
 		;;
 	(graph-weekly)
@@ -191,13 +193,13 @@ case ${CMD} in
 		DEF:bgl=${RRDFILE}:bgl:AVERAGE \
 		DEF:trend=${RRDFILE}:trend:AVERAGE \
 		COMMENT:"	" \
-		LINE1:bgl\#${Bcolor}:"BGL average 5 min" \
+		LINE1:bgl\#${Bcolor}:"  bgl average 5 min" \
 		LINE2:trend\#${Tcolor}:"Trend average 5 min" \
 		COMMENT:"	\j" \
 		COMMENT:"	" \
-		GPRINT:bgl:MIN:"bgl  5 min minimum\: %lf" \
-		GPRINT:bgl:MAX:"bgl  5 min maximum\: %lf" \
-		GPRINT:bgl:AVERAGE:"bgl  5 min average\: %lf" \
+		GPRINT:bgl:MIN:"  bgl  5 min minimum\: %lf" \
+		GPRINT:bgl:MAX:"  bgl  5 min maximum\: %lf" \
+		GPRINT:bgl:AVERAGE:"  bgl  5 min average\: %lf" \
 		COMMENT:"	\j" \
 		COMMENT:"	" \
 		GPRINT:trend:MIN:"Trend  5 min minimum\: %lf" \
@@ -212,13 +214,13 @@ case ${CMD} in
 		DEF:bgl=${RRDFILE}:bgl:AVERAGE \
 		DEF:trend=${RRDFILE}:trend:AVERAGE \
 		COMMENT:"	" \
-		LINE1:bgl\#${Bcolor}:"BGL average 30 min" \
+		LINE1:bgl\#${Bcolor}:"  bgl average 30 min" \
 		LINE2:trend\#${Tcolor}:"Trend average 30 min" \
 		COMMENT:"	\j" \
 		COMMENT:"	" \
-		GPRINT:bgl:MIN:"bgl 30 min minimum\: %lf" \
-		GPRINT:bgl:MAX:"bgl 30 min maximum\: %lf" \
-		GPRINT:bgl:AVERAGE:"bgl 30 min average\: %lf" \
+		GPRINT:bgl:MIN:"  bgl 30 min minimum\: %lf" \
+		GPRINT:bgl:MAX:"  bgl 30 min maximum\: %lf" \
+		GPRINT:bgl:AVERAGE:"  bgl 30 min average\: %lf" \
 		COMMENT:"	\j" \
 		COMMENT:"	" \
 		GPRINT:trend:MIN:"Trend 30 min minimum\: %lf" \
@@ -233,13 +235,13 @@ case ${CMD} in
 		DEF:bgl=${RRDFILE}:bgl:AVERAGE \
 		DEF:trend=${RRDFILE}:trend:AVERAGE \
 		COMMENT:"	" \
-		LINE1:bgl\#${Bcolor}:"BGL average 2 h" \
+		LINE1:bgl\#${Bcolor}:"  bgl average 2 h" \
 		LINE2:trend\#${Tcolor}:"Trend average 2 h" \
 		COMMENT:"	\j" \
 		COMMENT:"	" \
-		GPRINT:bgl:MIN:"bgl  2 h minimum\: %lf" \
-		GPRINT:bgl:MAX:"bgl  2 h maximum\: %lf" \
-		GPRINT:bgl:AVERAGE:"bgl  2 h average\: %lf" \
+		GPRINT:bgl:MIN:"  bgl  2 h minimum\: %lf" \
+		GPRINT:bgl:MAX:"  bgl  2 h maximum\: %lf" \
+		GPRINT:bgl:AVERAGE:"  bgl  2 h average\: %lf" \
 		COMMENT:"	\j" \
 		COMMENT:"	" \
 		GPRINT:trend:MIN:"Trend  2 h minimum\: %lf" \
