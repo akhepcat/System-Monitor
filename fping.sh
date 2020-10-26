@@ -5,7 +5,7 @@
 
 [[ -r "/etc/default/sysmon.conf" ]] && source /etc/default/sysmon.conf
 
-USE_FPING=1
+USE_FPING=${USE_FPING:-1}
 # Values are in seconds, for  "--end now --start end-${DATE}"
 # yesterday, plus 4 hours
 YESTERDAY=90000
@@ -151,36 +151,41 @@ case $CMD in
 		-c ARROW\#000000 -x MINUTE:30:MINUTE:30:HOUR:1:0:%H \
 		DEF:pingmin=${RRDFILE}:pingmin:AVERAGE \
 		DEF:pingmax=${RRDFILE}:pingmax:AVERAGE \
-		DEF:pktloss=${RRDFILE}:pktloss:AVERAGE \
 		DEF:jitter=${RRDFILE}:jitter:AVERAGE \
+		DEF:pktloss=${RRDFILE}:pktloss:AVERAGE \
 		CDEF:lossinv=0,pktloss,- \
 		CDEF:jittinv=0,jitter,- \
-		COMMENT:"	" \
-		LINE2:pingmin\#44FF44:"minimum RTT" \
-		LINE2:pingmax\#000ccc:"maximum RTT" \
-		LINE3:lossinv\#FF0000:"packet loss" \
-		LINE1:jitter\#ccc000:"packet jitter" \
-		COMMENT:"	\j" \
-		COMMENT:"	" \
-		GPRINT:pingmin:MIN:"abs min-RTT minimum\: %lf" \
-		GPRINT:pingmin:MAX:"abs min-RTT maximum\: %lf" \
-		GPRINT:pingmin:AVERAGE:"min-RTT average\: %lf" \
-		COMMENT:"	\j" \
-		COMMENT:"	" \
-		GPRINT:pingmax:MIN:"abs max-RTT minimum\: %lf" \
-		GPRINT:pingmax:MAX:"abs max-RTT maximum\: %lf" \
-		GPRINT:pingmax:AVERAGE:"max-RTT average\: %lf" \
-		COMMENT:"	\j" \
-		COMMENT:"	" \
-		GPRINT:pktloss:MIN:"abs pkt-loss minimum\: %lf" \
-		GPRINT:pktloss:MAX:"abs pkt-loss maximum\: %lf" \
-		GPRINT:pktloss:AVERAGE:"pkt-loss average\: %lf" \
-		COMMENT:"	\j" \
-		COMMENT:"	" \
-		GPRINT:jitter:MIN:"abs jitter minimum\: %lf" \
-		GPRINT:jitter:MAX:"abs jitter maximum\: %lf" \
-		GPRINT:jitter:AVERAGE:"jitter average\: %lf" \
-		COMMENT:"	\j"
+		COMMENT:"\l" \
+		COMMENT:"\t    " \
+		LINE2:pingmin\#44FF44:"min RTT ms\t    " \
+		LINE2:pingmax\#000ccc:"max RTT ms\t    " \
+		LINE1:jitter\#ccc000:"jitter ms\t    " \
+		LINE3:lossinv\#FF0000:"pkt loss %\t    " \
+		COMMENT:"\l" \
+		COMMENT:"\t    " \
+		GPRINT:pingmin:MIN:" min\: %3.03lf\t    " \
+		GPRINT:pingmax:MIN:" min\: %3.03lf\t    " \
+		GPRINT:jitter:MIN:" min\: %3.03lf\t    " \
+		GPRINT:pktloss:MIN:" min\: %3.03lf\t    " \
+		COMMENT:"\l" \
+		COMMENT:"\t    " \
+		GPRINT:pingmin:MAX:" max\: %3.03lf\t    " \
+		GPRINT:pingmax:MAX:" max\: %3.03lf\t    " \
+		GPRINT:jitter:MAX:" max\: %3.03lf\t    " \
+		GPRINT:pktloss:MAX:" max\: %3.03lf\t    " \
+		COMMENT:"\l" \
+		COMMENT:"\t    " \
+		GPRINT:pingmin:AVERAGE:" avg\: %3.03lf\t    " \
+		GPRINT:pingmax:AVERAGE:" avg\: %3.03lf\t    " \
+		GPRINT:jitter:AVERAGE:" avg\: %3.03lf\t    " \
+		GPRINT:pktloss:AVERAGE:" avg\: %3.03lf\t    " \
+		COMMENT:"\l" \
+		COMMENT:"\t    " \
+		GPRINT:pingmin:LAST:"last\: %3.03lf\t    " \
+		GPRINT:pingmax:LAST:"last\: %3.03lf\t    " \
+		GPRINT:jitter:LAST:"last\: %3.03lf\t    " \
+		GPRINT:pktloss:LAST:"last\: %3.03lf\t    " \
+		COMMENT:"\l"
 		;;
 
 	graph-weekly)
@@ -189,36 +194,41 @@ case $CMD in
 		--end now --start end-$LASTWEEK -c ARROW\#000000  \
 		DEF:pingmin=${RRDFILE}:pingmin:AVERAGE \
 		DEF:pingmax=${RRDFILE}:pingmax:AVERAGE \
-		DEF:pktloss=${RRDFILE}:pktloss:AVERAGE \
 		DEF:jitter=${RRDFILE}:jitter:AVERAGE \
+		DEF:pktloss=${RRDFILE}:pktloss:AVERAGE \
 		CDEF:lossinv=0,pktloss,- \
 		CDEF:jittinv=0,jitter,- \
-		COMMENT:"	" \
-		LINE2:pingmin\#44FF44:"minimum RTT" \
-		LINE2:pingmax\#000ccc:"maximum RTT" \
-		LINE3:lossinv\#FF0000:"packet loss" \
-		LINE1:jitter\#ccc000:"packet jitter" \
-		COMMENT:"	\j" \
-		COMMENT:"	" \
-		GPRINT:pingmin:MIN:"abs min-RTT minimum\: %lf" \
-		GPRINT:pingmin:MAX:"abs min-RTT maximum\: %lf" \
-		GPRINT:pingmin:AVERAGE:"min-RTT average\: %lf" \
-		COMMENT:"	\j" \
-		COMMENT:"	" \
-		GPRINT:pingmax:MIN:"abs max-RTT minimum\: %lf" \
-		GPRINT:pingmax:MAX:"abs max-RTT maximum\: %lf" \
-		GPRINT:pingmax:AVERAGE:"max-RTT average\: %lf" \
-		COMMENT:"	\j" \
-		COMMENT:"	" \
-		GPRINT:pktloss:MIN:"abs pkt-loss minimum\: %lf" \
-		GPRINT:pktloss:MAX:"abs pkt-loss maximum\: %lf" \
-		GPRINT:pktloss:AVERAGE:"pkt-loss average\: %lf" \
-		COMMENT:"	\j" \
-		COMMENT:"	" \
-		GPRINT:jitter:MIN:"abs jitter minimum\: %lf" \
-		GPRINT:jitter:MAX:"abs jitter maximum\: %lf" \
-		GPRINT:jitter:AVERAGE:"jitter average\: %lf" \
-		COMMENT:"	\j"
+		COMMENT:"\l" \
+		COMMENT:"\t    " \
+		LINE2:pingmin\#44FF44:"min RTT ms\t    " \
+		LINE2:pingmax\#000ccc:"max RTT ms\t    " \
+		LINE1:jitter\#ccc000:"jitter ms\t    " \
+		LINE3:lossinv\#FF0000:"pkt loss %\t    " \
+		COMMENT:"\l" \
+		COMMENT:"\t    " \
+		GPRINT:pingmin:MIN:" min\: %3.03lf\t    " \
+		GPRINT:pingmax:MIN:" min\: %3.03lf\t    " \
+		GPRINT:jitter:MIN:" min\: %3.03lf\t    " \
+		GPRINT:pktloss:MIN:" min\: %3.03lf\t    " \
+		COMMENT:"\l" \
+		COMMENT:"\t    " \
+		GPRINT:pingmin:MAX:" max\: %3.03lf\t    " \
+		GPRINT:pingmax:MAX:" max\: %3.03lf\t    " \
+		GPRINT:jitter:MAX:" max\: %3.03lf\t    " \
+		GPRINT:pktloss:MAX:" max\: %3.03lf\t    " \
+		COMMENT:"\l" \
+		COMMENT:"\t    " \
+		GPRINT:pingmin:AVERAGE:" avg\: %3.03lf\t    " \
+		GPRINT:pingmax:AVERAGE:" avg\: %3.03lf\t    " \
+		GPRINT:jitter:AVERAGE:" avg\: %3.03lf\t    " \
+		GPRINT:pktloss:AVERAGE:" avg\: %3.03lf\t    " \
+		COMMENT:"\l" \
+		COMMENT:"\t    " \
+		GPRINT:pingmin:LAST:"last\: %3.03lf\t    " \
+		GPRINT:pingmax:LAST:"last\: %3.03lf\t    " \
+		GPRINT:jitter:LAST:"last\: %3.03lf\t    " \
+		GPRINT:pktloss:LAST:"last\: %3.03lf\t    " \
+		COMMENT:"\l"
 		;;
 	graph-monthly)
     rrdtool graph ${GRAPHNAME//.png/-month.png} \
@@ -226,36 +236,41 @@ case $CMD in
 		--end now --start end-$LASTMONTH -c ARROW\#000000  \
 		DEF:pingmin=${RRDFILE}:pingmin:AVERAGE \
 		DEF:pingmax=${RRDFILE}:pingmax:AVERAGE \
-		DEF:pktloss=${RRDFILE}:pktloss:AVERAGE \
 		DEF:jitter=${RRDFILE}:jitter:AVERAGE \
+		DEF:pktloss=${RRDFILE}:pktloss:AVERAGE \
 		CDEF:lossinv=0,pktloss,- \
 		CDEF:jittinv=0,jitter,- \
-		COMMENT:"	" \
-		LINE2:pingmin\#44FF44:"minimum RTT" \
-		LINE2:pingmax\#000ccc:"maximum RTT" \
-		LINE3:lossinv\#FF0000:"packet loss" \
-		LINE1:jitter\#ccc000:"packet jitter" \
-		COMMENT:"	\j" \
-		COMMENT:"	" \
-		GPRINT:pingmin:MIN:"abs min-RTT minimum\: %lf" \
-		GPRINT:pingmin:MAX:"abs min-RTT maximum\: %lf" \
-		GPRINT:pingmin:AVERAGE:"min-RTT average\: %lf" \
-		COMMENT:"	\j" \
-		COMMENT:"	" \
-		GPRINT:pingmax:MIN:"abs max-RTT minimum\: %lf" \
-		GPRINT:pingmax:MAX:"abs max-RTT maximum\: %lf" \
-		GPRINT:pingmax:AVERAGE:"max-RTT average\: %lf" \
-		COMMENT:"	\j" \
-		COMMENT:"	" \
-		GPRINT:pktloss:MIN:"abs pkt-loss minimum\: %lf" \
-		GPRINT:pktloss:MAX:"abs pkt-loss maximum\: %lf" \
-		GPRINT:pktloss:AVERAGE:"pkt-loss average\: %lf" \
-		COMMENT:"	\j" \
-		COMMENT:"	" \
-		GPRINT:jitter:MIN:"abs jitter minimum\: %lf" \
-		GPRINT:jitter:MAX:"abs jitter maximum\: %lf" \
-		GPRINT:jitter:AVERAGE:"jitter average\: %lf" \
-		COMMENT:"	\j"
+		COMMENT:"\l" \
+		COMMENT:"\t    " \
+		LINE2:pingmin\#44FF44:"min RTT ms\t    " \
+		LINE2:pingmax\#000ccc:"max RTT ms\t    " \
+		LINE1:jitter\#ccc000:"jitter ms\t    " \
+		LINE3:lossinv\#FF0000:"pkt loss %\t    " \
+		COMMENT:"\l" \
+		COMMENT:"\t    " \
+		GPRINT:pingmin:MIN:" min\: %3.03lf\t    " \
+		GPRINT:pingmax:MIN:" min\: %3.03lf\t    " \
+		GPRINT:jitter:MIN:" min\: %3.03lf\t    " \
+		GPRINT:pktloss:MIN:" min\: %3.03lf\t    " \
+		COMMENT:"\l" \
+		COMMENT:"\t    " \
+		GPRINT:pingmin:MAX:" max\: %3.03lf\t    " \
+		GPRINT:pingmax:MAX:" max\: %3.03lf\t    " \
+		GPRINT:jitter:MAX:" max\: %3.03lf\t    " \
+		GPRINT:pktloss:MAX:" max\: %3.03lf\t    " \
+		COMMENT:"\l" \
+		COMMENT:"\t    " \
+		GPRINT:pingmin:AVERAGE:" avg\: %3.03lf\t    " \
+		GPRINT:pingmax:AVERAGE:" avg\: %3.03lf\t    " \
+		GPRINT:jitter:AVERAGE:" avg\: %3.03lf\t    " \
+		GPRINT:pktloss:AVERAGE:" avg\: %3.03lf\t    " \
+		COMMENT:"\l" \
+		COMMENT:"\t    " \
+		GPRINT:pingmin:LAST:"last\: %3.03lf\t    " \
+		GPRINT:pingmax:LAST:"last\: %3.03lf\t    " \
+		GPRINT:jitter:LAST:"last\: %3.03lf\t    " \
+		GPRINT:pktloss:LAST:"last\: %3.03lf\t    " \
+		COMMENT:"\l"
 		;;
 	graph-yearly)
     rrdtool graph ${GRAPHNAME//.png/-year.png} \
@@ -263,36 +278,41 @@ case $CMD in
 		--end now --start end-$LASTYEAR -c ARROW\#000000  \
 		DEF:pingmin=${RRDFILE}:pingmin:AVERAGE \
 		DEF:pingmax=${RRDFILE}:pingmax:AVERAGE \
-		DEF:pktloss=${RRDFILE}:pktloss:AVERAGE \
 		DEF:jitter=${RRDFILE}:jitter:AVERAGE \
+		DEF:pktloss=${RRDFILE}:pktloss:AVERAGE \
 		CDEF:lossinv=0,pktloss,- \
 		CDEF:jittinv=0,jitter,- \
-		COMMENT:"	" \
-		LINE2:pingmin\#44FF44:"minimum RTT" \
-		LINE2:pingmax\#000ccc:"maximum RTT" \
-		LINE3:lossinv\#FF0000:"packet loss" \
-		LINE1:jitter\#ccc000:"packet jitter" \
-		COMMENT:"	\j" \
-		COMMENT:"	" \
-		GPRINT:pingmin:MIN:"abs min-RTT minimum\: %lf" \
-		GPRINT:pingmin:MAX:"abs min-RTT maximum\: %lf" \
-		GPRINT:pingmin:AVERAGE:"min-RTT average\: %lf" \
-		COMMENT:"	\j" \
-		COMMENT:"	" \
-		GPRINT:pingmax:MIN:"abs max-RTT minimum\: %lf" \
-		GPRINT:pingmax:MAX:"abs max-RTT maximum\: %lf" \
-		GPRINT:pingmax:AVERAGE:"max-RTT average\: %lf" \
-		COMMENT:"	\j" \
-		COMMENT:"	" \
-		GPRINT:pktloss:MIN:"abs pkt-loss minimum\: %lf" \
-		GPRINT:pktloss:MAX:"abs pkt-loss maximum\: %lf" \
-		GPRINT:pktloss:AVERAGE:"pkt-loss average\: %lf" \
-		COMMENT:"	\j" \
-		COMMENT:"	" \
-		GPRINT:jitter:MIN:"abs jitter minimum\: %lf" \
-		GPRINT:jitter:MAX:"abs jitter maximum\: %lf" \
-		GPRINT:jitter:AVERAGE:"jitter average\: %lf" \
-		COMMENT:"	\j"
+		COMMENT:"\l" \
+		COMMENT:"\t    " \
+		LINE2:pingmin\#44FF44:"min RTT ms\t    " \
+		LINE2:pingmax\#000ccc:"max RTT ms\t    " \
+		LINE1:jitter\#ccc000:"jitter ms\t    " \
+		LINE3:lossinv\#FF0000:"pkt loss %\t    " \
+		COMMENT:"\l" \
+		COMMENT:"\t    " \
+		GPRINT:pingmin:MIN:" min\: %3.03lf\t    " \
+		GPRINT:pingmax:MIN:" min\: %3.03lf\t    " \
+		GPRINT:jitter:MIN:" min\: %3.03lf\t    " \
+		GPRINT:pktloss:MIN:" min\: %3.03lf\t    " \
+		COMMENT:"\l" \
+		COMMENT:"\t    " \
+		GPRINT:pingmin:MAX:" max\: %3.03lf\t    " \
+		GPRINT:pingmax:MAX:" max\: %3.03lf\t    " \
+		GPRINT:jitter:MAX:" max\: %3.03lf\t    " \
+		GPRINT:pktloss:MAX:" max\: %3.03lf\t    " \
+		COMMENT:"\l" \
+		COMMENT:"\t    " \
+		GPRINT:pingmin:AVERAGE:" avg\: %3.03lf\t    " \
+		GPRINT:pingmax:AVERAGE:" avg\: %3.03lf\t    " \
+		GPRINT:jitter:AVERAGE:" avg\: %3.03lf\t    " \
+		GPRINT:pktloss:AVERAGE:" avg\: %3.03lf\t    " \
+		COMMENT:"\l" \
+		COMMENT:"\t    " \
+		GPRINT:pingmin:LAST:"last\: %3.03lf\t    " \
+		GPRINT:pingmax:LAST:"last\: %3.03lf\t    " \
+		GPRINT:jitter:LAST:"last\: %3.03lf\t    " \
+		GPRINT:pktloss:LAST:"last\: %3.03lf\t    " \
+		COMMENT:"\l"
 		;;
 	*)
 		usage
