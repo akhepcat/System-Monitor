@@ -11,6 +11,6 @@ Collection of scripts that monitor a system or network.
 * memory.sh: displays the system memory information  
 * load.sh: displays the system CPU utilization  
 * sitestats.sh: internal script for rebuilding the web indices  
-*  
+* dexcom.sh:  Monitors your Dexcom G4/G5/G6 continuous glucose monitor data
 * page_load_time.pl:  called from webspeed.sh, used to display the total time to download an entire page with all dependancies  
 * sysmon.conf:  placed in /etc/default, defines/overrides the script parameters  
