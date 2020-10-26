@@ -137,6 +137,8 @@ do
 	fi
 done
 
+echo "<hr />"  >> ${IDX}
+echo "<p> (c) akhepcat - <a href="https://github.com/akhepcat/System-Monitor">System-Monitor Suite</a> on Github!</p>" >> ${IDX}
 echo "</body>" >> ${IDX}
 echo "</html>" >> ${IDX}
 
@@ -245,6 +247,8 @@ do
 	fi
 done
 
+echo "<hr />" >> ${IDX}
+echo "<p> (c) akhepcat - <a href="https://github.com/akhepcat/System-Monitor">System-Monitor Suite</a> on Github!</p>" >> ${IDX}
 echo "</body>" >> ${IDX}
 echo "</html>" >> ${IDX}
 
@@ -355,6 +359,8 @@ do
 	fi
 done
 
+echo "<hr />" >> ${IDX}
+echo "<p> (c) akhepcat - <a href="https://github.com/akhepcat/System-Monitor">System-Monitor Suite</a> on Github!</p>" >> ${IDX}
 echo "</body>" >> ${IDX}
 echo "</html>" >> ${IDX}
 
@@ -465,6 +471,8 @@ do
 	fi
 done
 
+echo "<hr />" >> ${IDX}
+echo "<p> (c) akhepcat - <a href="https://github.com/akhepcat/System-Monitor">System-Monitor Suite</a> on Github!</p>"  >> ${IDX}
 echo "</body>" >> ${IDX}
 echo "</html>" >> ${IDX}
 
