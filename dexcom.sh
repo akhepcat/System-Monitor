@@ -197,7 +197,7 @@ case ${CMD} in
 	(graph)
 	    
 	    rrdtool graph ${GRAPHNAME} \
-		-Y -u 1.1 -l 0 -L 2 -v "Blood-Glucose level" -w 700 -h 300 -t "${MYHOST} last 24 hours Blood-Glucose level - ${DATE}" \
+		-Y -u 1.1 -l 0 -L 2 -v "Blood-Glucose level" -w 700 -h 300 -t "${dexcom_username} last 24 hours Blood-Glucose level - ${DATE}" \
 		-c ARROW\#000000 -x MINUTE:30:MINUTE:30:HOUR:1:0:%H \
 		DEF:bgl=${RRDFILE}:bgl:AVERAGE \
 		DEF:trend=${RRDFILE}:trend:AVERAGE \
@@ -220,7 +220,7 @@ case ${CMD} in
 		;;
 	(graph-weekly)
 	    rrdtool graph ${GRAPHNAME//.png/-week.png} \
-		-Y -u 1.1 -l 0 -L 2 -v "Blood-Glucose level" -w 700 -h 300 -t "${MYHOST} last 7 days Blood-Glucose level - ${DATE}" \
+		-Y -u 1.1 -l 0 -L 2 -v "Blood-Glucose level" -w 700 -h 300 -t "${dexcom_username} last 7 days Blood-Glucose level - ${DATE}" \
                 --end now --start end-$LASTWEEK -c ARROW\#000000  \
 		DEF:bgl=${RRDFILE}:bgl:AVERAGE \
 		DEF:trend=${RRDFILE}:trend:AVERAGE \
@@ -241,7 +241,7 @@ case ${CMD} in
 		;;
 	(graph-monthly)
 	    rrdtool graph ${GRAPHNAME//.png/-month.png} \
-		-Y -u 1.1 -l 0 -L 2 -v "Blood-Glucose level" -w 700 -h 300 -t "${MYHOST} last month's Blood-Glucose level - ${DATE}" \
+		-Y -u 1.1 -l 0 -L 2 -v "Blood-Glucose level" -w 700 -h 300 -t "${dexcom_username} last month's Blood-Glucose level - ${DATE}" \
                 --end now --start end-$LASTMONTH -c ARROW\#000000  \
 		DEF:bgl=${RRDFILE}:bgl:AVERAGE \
 		DEF:trend=${RRDFILE}:trend:AVERAGE \
@@ -262,7 +262,7 @@ case ${CMD} in
 		;;
 	(graph-yearly)
 	    rrdtool graph ${GRAPHNAME//.png/-year.png} \
-		-Y -u 1.1 -l 0 -L 2 -v "Blood-Glucose level" -w 700 -h 300 -t "${MYHOST} last year's Blood-Glucose level - ${DATE}" \
+		-Y -u 1.1 -l 0 -L 2 -v "Blood-Glucose level" -w 700 -h 300 -t "${dexcom_username} last year's Blood-Glucose level - ${DATE}" \
                 --end now --start end-$LASTYEAR -c ARROW\#000000  \
 		DEF:bgl=${RRDFILE}:bgl:AVERAGE \
 		DEF:trend=${RRDFILE}:trend:AVERAGE \
