@@ -22,6 +22,10 @@ LASTMONTH=3234543
 # last year, plus a month
 LASTYEAR=34819200
 
+# Dexcom only updates every 5 minutes, so we use this to cache data except on the 5-minute mark
+HOUR=$(date +"%-H")	# we don't want zero-padded
+MIN=$(date +"%-M")	# ^^^
+TS=$(( ($HOUR * 3600) + ($MIN * 60) ))
 
 #####################
 PUSER="${USER}"
@@ -39,6 +43,8 @@ appID="d8665ade-9673-4e27-9ff6-92db4ce13d13"
 
 RRDFILE="${RRDLIB:-.}/${PROGNAME}-${dexcom_username}.rrd"
 GRAPHNAME="${WEBROOT:-.}/${PROGNAME}-${dexcom_username}.png"
+
+bglcache=/run/dexcom-${dexcom_username}.cache
 
 # Graph colors
 Bcolor=cc0c00
@@ -136,7 +142,21 @@ case ${CMD} in
 		;;
 
 	(update)
-		dex_update
+	        if [ 0 -eq $((TS % 300)) ]
+	        then
+			dex_update
+			echo "${Value}:${Trend}" > "${bglcache}"
+		else
+			if [ -r "${bglcache}" ]
+			then
+				data=$(cat "${bglcache}")
+				Value=${data%%:*}
+				Trend=${data##*:}
+			else
+				Value=NaN
+				Trend=NaN
+			fi
+	        fi
 
 		rrdtool update ${RRDFILE} \
 		N:${Value}:${Trend}
