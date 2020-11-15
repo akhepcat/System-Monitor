@@ -4,6 +4,7 @@ Collection of scripts that monitor a system or network.
 * sda1.sh: symlinkable script (per partition/drive) for disk utilization  
 * eth0.sh: symlinkable script (per interface) for network utilization  
 * fping.sh:  network latency for a list of hosts (in do-updates)  
+* response.sh:  creates/updates a single-page index for all fping graphs
 * webspeed.sh: determines network speed by pulling a cached copy of your-favorite-remote-website  
 * webpage.sh: network latency to webservers listed in do-updates  
 * uptime.sh: displays the system uptime  
