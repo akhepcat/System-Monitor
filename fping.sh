@@ -190,7 +190,7 @@ case $CMD in
 
 	graph-weekly)
     rrdtool graph ${GRAPHNAME//.png/-week.png} \
-		-v "Bytes" -w 700 -h 300 -t "${MYHOST} last 7 days memory usage- ${DATE}" \
+		-v "Bytes" -w 700 -h 300 -t "${MYHOST} last 7 days ping stats for ${IP} - ${DATE}" \
 		--end now --start end-$LASTWEEK -c ARROW\#000000  \
 		DEF:pingmin=${RRDFILE}:pingmin:AVERAGE \
 		DEF:pingmax=${RRDFILE}:pingmax:AVERAGE \
@@ -232,7 +232,7 @@ case $CMD in
 		;;
 	graph-monthly)
     rrdtool graph ${GRAPHNAME//.png/-month.png} \
-		-v "Bytes" -w 700 -h 300 -t "${MYHOST} last month's memory usage- ${DATE}" \
+		-v "Bytes" -w 700 -h 300 -t "${MYHOST} last month's ping stats for ${IP} - ${DATE}" \
 		--end now --start end-$LASTMONTH -c ARROW\#000000  \
 		DEF:pingmin=${RRDFILE}:pingmin:AVERAGE \
 		DEF:pingmax=${RRDFILE}:pingmax:AVERAGE \
@@ -274,7 +274,7 @@ case $CMD in
 		;;
 	graph-yearly)
     rrdtool graph ${GRAPHNAME//.png/-year.png} \
-		-v "Bytes" -w 700 -h 300 -t "${MYHOST} last year's memory usage- ${DATE}" \
+		-v "Bytes" -w 700 -h 300 -t "${MYHOST} last year's ping stats for ${IP} - ${DATE}" \
 		--end now --start end-$LASTYEAR -c ARROW\#000000  \
 		DEF:pingmin=${RRDFILE}:pingmin:AVERAGE \
 		DEF:pingmax=${RRDFILE}:pingmax:AVERAGE \
