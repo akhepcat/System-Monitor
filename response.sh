@@ -75,7 +75,7 @@ case ${CMD} in
 	        fi
 		;;
 
-	(graph|graph-weekly|graph-monthly|graph-yearly)
+	(graph|graph-weekly|graph-monthly)
 		# this would update the index too often, based on 'auto' scheduling
 		echo "no-op" > /dev/null
 		;;
@@ -85,11 +85,13 @@ case ${CMD} in
 		html_head
 
 		# menu header
-		for RRD in $(ls ${RRDBASE}*.rrd | sed "s^.*$RRDBASE^^g; s/\.rrd//g;" | sort -f) ;
+		for RRD in ${PINGS} ;
 		do
 			echo "<a href=\"#${RRD}\">${RRD}</a>&nbsp;&nbsp;&nbsp;" >> ${IDX}
 		done
-		for RRD in $(ls ${RRDBASE}*.rrd | sed "s^.*$RRDBASE^^g; s/\.rrd//g;" | sort -f) ;
+
+		# Now the graphs
+		for RRD in ${PINGS} ;
 		do
 			echo "<div name=\"${RRD}\">" >> ${IDX}
 			echo "<a name=\"${RRD}\" />" >> ${IDX}
