@@ -111,8 +111,8 @@ dex_update() {
 		if [ -z "${session}" ]
 		then
 			# don't know why, but refreshing the session didn't work
-			Value=NaN
-			Trend=NaN
+			Value=U
+			Trend=U
 			return
 		else
 			# save the session, because now it's valid!
@@ -194,8 +194,8 @@ case ${CMD} in
 				Value=${data%%:*}
 				Trend=${data##*:}
 			else
-				Value=NaN
-				Trend=NaN
+				Value=U
+				Trend=U
 			fi
 	        fi
 
