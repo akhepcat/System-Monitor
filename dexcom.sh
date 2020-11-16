@@ -209,9 +209,10 @@ case ${CMD} in
 		-c ARROW\#000000 -x MINUTE:30:MINUTE:30:HOUR:1:0:%H \
 		DEF:bgl=${RRDFILE}:bgl:AVERAGE \
 		DEF:trend=${RRDFILE}:trend:AVERAGE \
+		CDEF:bigt=trend,20,* \
 		COMMENT:"\t" \
 		LINE1:bgl\#${Bcolor}:" BGL average\t\t\t" \
-		LINE2:trend\#${Tcolor}:" Trend average\t" \
+		LINE1:bigt\#${Tcolor}:" Trend average\t" \
 		COMMENT:"Trending Legend\:" \
 		COMMENT:"\l" \
 		COMMENT:"\t" \
@@ -232,7 +233,8 @@ case ${CMD} in
 		COMMENT:"\t" \
 		GPRINT:bgl:LAST:"    current\: %3.0lf\t\t" \
 		GPRINT:trend:LAST:"    current\: %1.0lf\t" \
-		COMMENT:"\l"
+		COMMENT:"\l" \
+		COMMENT:"\t\t\t\t(trend visualization on graph is 20x)"
 		;;
 	(graph-weekly)
 	    rrdtool graph ${GRAPHNAME//.png/-week.png} \
@@ -240,9 +242,10 @@ case ${CMD} in
                 --end now --start end-$LASTWEEK -c ARROW\#000000  \
 		DEF:bgl=${RRDFILE}:bgl:AVERAGE \
 		DEF:trend=${RRDFILE}:trend:AVERAGE \
+		CDEF:bigt=trend,20,* \
 		COMMENT:"\t\t" \
 		LINE1:bgl\#${Bcolor}:" BGL average\t\t\t" \
-		LINE2:trend\#${Tcolor}:" Trend average\t" \
+		LINE1:bigt\#${Tcolor}:" Trend average\t" \
 		COMMENT:"\l" \
 		COMMENT:"\t\t" \
 		GPRINT:bgl:MIN:"  5 min min\: %3.0lf\t\t" \
@@ -255,7 +258,8 @@ case ${CMD} in
 		COMMENT:"\t\t" \
 		GPRINT:bgl:AVERAGE:"  5 min avg\: %3.0lf\t\t" \
 		GPRINT:trend:AVERAGE:"  5 min avg\: %1.0lf\t" \
-		COMMENT:"\l"
+		COMMENT:"\l" \
+		COMMENT:"\t\t\t\t\t\t(trend visualization on graph is 20x)"
 		;;
 	(graph-monthly)
 	    rrdtool graph ${GRAPHNAME//.png/-month.png} \
@@ -263,9 +267,10 @@ case ${CMD} in
                 --end now --start end-$LASTMONTH -c ARROW\#000000  \
 		DEF:bgl=${RRDFILE}:bgl:AVERAGE \
 		DEF:trend=${RRDFILE}:trend:AVERAGE \
+		CDEF:bigt=trend,20,* \
 		COMMENT:"\t\t" \
 		LINE1:bgl\#${Bcolor}:" BGL average\t\t\t" \
-		LINE2:trend\#${Tcolor}:" Trend average\t" \
+		LINE1:bigt\#${Tcolor}:" Trend average\t" \
 		COMMENT:"\l" \
 		COMMENT:"\t\t" \
 		GPRINT:bgl:MIN:" 30 min min\: %3.0lf\t\t" \
@@ -278,7 +283,8 @@ case ${CMD} in
 		COMMENT:"\t\t" \
 		GPRINT:bgl:AVERAGE:" 30 min avg\: %3.0lf\t\t" \
 		GPRINT:trend:AVERAGE:" 30 min avg\: %1.0lf\t" \
-		COMMENT:"\l"
+		COMMENT:"\l" \
+		COMMENT:"\t\t\t\t\t\t(trend visualization on graph is 20x)"
 		;;
 	(graph-yearly)
 	    rrdtool graph ${GRAPHNAME//.png/-year.png} \
@@ -286,9 +292,10 @@ case ${CMD} in
                 --end now --start end-$LASTYEAR -c ARROW\#000000  \
 		DEF:bgl=${RRDFILE}:bgl:AVERAGE \
 		DEF:trend=${RRDFILE}:trend:AVERAGE \
+		CDEF:bigt=trend,LOG,3.3,*,EXP \
 		COMMENT:"\t\t" \
 		LINE1:bgl\#${Bcolor}:" BGL average\t\t\t" \
-		LINE2:trend\#${Tcolor}:" Trend average\t" \
+		LINE1:bigt\#${Tcolor}:" Trend average\t" \
 		COMMENT:"\l" \
 		COMMENT:"\t\t" \
 		GPRINT:bgl:MIN:" 2h min\: %3.0lf\t\t\t" \
@@ -301,7 +308,8 @@ case ${CMD} in
 		COMMENT:"\t\t" \
 		GPRINT:bgl:AVERAGE:" 2h avg\: %3.0lf\t\t\t" \
 		GPRINT:trend:AVERAGE:" 2h avg\: %1.0lf\t" \
-		COMMENT:"\l"
+		COMMENT:"\l" \
+		COMMENT:"\t\t\t\t\t\t(trend visualization on graph is 25x)"
 		;;
 	(*)
 		echo "Invalid option for ${PROGNAME}"
