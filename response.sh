@@ -23,7 +23,7 @@ GRAPHBASE="${WEBROOT:-.}/${PROGNAME}-"
 IDX="${WEBROOT:-.}/${PROGNAME}.html"
 
 html_head() {
-cat >${IDX} <<EOF
+	cat >${IDX} <<EOF
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en" dir="ltr">
 	<head>
@@ -47,11 +47,12 @@ EOF
 }
 
 html_tail() {
-echo "<hr />"  >> ${IDX}
-echo "<p> (c) akhepcat - <a href="https://github.com/akhepcat/System-Monitor">System-Monitor Suite</a> on Github!</p>" >> ${IDX}
-echo "</body>" >> ${IDX}
-echo "</html>" >> ${IDX}
-
+	cat >${IDX} <<EOF
+<hr />
+<p> (c) akhepcat - <a href="https://github.com/akhepcat/System-Monitor">System-Monitor Suite</a> on Github!</p>
+</body>
+</html>
+EOF
 }
 
 
@@ -59,7 +60,7 @@ case ${CMD} in
 	(debug)
 		echo "RRDLIB=${RRDLIB}"
 		echo "WEBROOT=${WEBROOT}"
-		echo "RRDs={"$(ls ${RRDBASE}*.rrd | sed "s^.*$RRDBASE^^g; s/\.rrd//g;")"}"
+		echo "RRDs={${PINGS}}"
 		echo "GRAPHs={"$(ls ${GRAPHBASE}*.png | sed "s^.*$GRAPHBASE^^g; s/\.png//g;")"}"
 
 		;;
