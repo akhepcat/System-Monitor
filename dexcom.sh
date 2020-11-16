@@ -112,7 +112,7 @@ dex_update() {
 		then
 			# don't know why, but refreshing the session didn't work
 			Value=U
-			Trend=U
+			Trend=9
 			return
 		else
 			# save the session, because now it's valid!
