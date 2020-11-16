@@ -47,7 +47,7 @@ EOF
 }
 
 html_tail() {
-	cat >${IDX} <<EOF
+	cat >>${IDX} <<EOF
 <hr />
 <p> (c) akhepcat - <a href="https://github.com/akhepcat/System-Monitor">System-Monitor Suite</a> on Github!</p>
 </body>
