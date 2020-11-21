@@ -32,7 +32,7 @@ html_head() {
 		<meta http-equiv="Refresh" content="300" />
 		<meta http-equiv="Pragma" content="no-cache" />
 		<meta http-equiv="Cache-Control" content="no-cache" />
-		<link rel="shortcut icon" href="" />
+		<link rel="shortcut icon" href="favicon.ico" />
 		<title> Real time Statistics </title>
 	</head>
 <body>
