@@ -80,7 +80,7 @@ case ${CMD} in
 		# this would update the index too often, based on 'auto' scheduling
 		echo "no-op" > /dev/null
 		;;
-	(graph-yearly)
+	(graph-yearly|reindex)
 		# this graphs just often enough, though could be longer
 
 		html_head
