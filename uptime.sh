@@ -1,9 +1,5 @@
 #!/bin/bash
-
-if [ -r /usr/share/fonts/misc/unifont.bdf ]
-then
-	FONT="-font /usr/share/fonts/misc/unifont.bdf"
-fi
+[[ -r "/etc/default/sysmon.conf" ]] && source /etc/default/sysmon.conf
 
 #####################
 PUSER="${USER}"
@@ -21,7 +17,7 @@ case ${CMD} in
 		echo "UPTIME=${UPTIME}"
 		;;
 	(update|graph|graph-weekly|graph-monthly|graph-yearly)
-		echo ${UPTIME} | pbmtext ${FONT} | pnmcrop | pnmpad -white -left 2 -right 2 -top 2 -bottom 2 | pnmtopng > ${GRAPHNAME}
+		echo ${UPTIME} | pbmtext | pnmcrop | pnmpad -white -left 2 -right 2 -top 2 -bottom 2 | pnmtopng > ${GRAPHNAME}
 		;;
 	(force-create|create)
 		;;
