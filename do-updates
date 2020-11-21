@@ -142,7 +142,7 @@ reindex() {
 	do
 		if [ -z "${i##*load*}" ]
 		then
-			GRAPHS=$($i debug | grep GRAPH)
+			GRAPHS=$($i debug | grep GRAPHNAME)
 			VAR=${i%%.*}
 			GRAPH1=$(echo ${GRAPHS} | cut -f2 -d= | awk '{print $1}')
 			GRAPH2=$(echo ${GRAPHS} | cut -f3 -d= | awk '{print $1}')
@@ -150,11 +150,14 @@ reindex() {
 			GRAPH2=${GRAPH2##*/}
 			GRAPH1=${GRAPH1//.png/$DWMY.png}
 			GRAPH2=${GRAPH2//.png/$DWMY.png}
-			echo "<h3>${VAR}</h3>" >> ${IDX}
-			echo "<p> <img src=\"${GRAPH1}\" alt="${GRAPH1}" /> </p>" >> ${IDX}
-			echo "<br />" >> ${IDX}
-			echo "<h3>${VAR}</h3>" >> ${IDX}
-			echo "<p> <img src=\"${GRAPH2}\" alt="${GRAPH2}" /> </p>" >> ${IDX}
+			if [ -n "${GRAPH1}" ]
+			then
+				echo "<h3>${VAR}</h3>" >> ${IDX}
+				echo "<p> <img src=\"${GRAPH1}\" alt="${GRAPH1}" /> </p>" >> ${IDX}
+				echo "<br />" >> ${IDX}
+				echo "<h3>${VAR}</h3>" >> ${IDX}
+				echo "<p> <img src=\"${GRAPH2}\" alt="${GRAPH2}" /> </p>" >> ${IDX}
+			fi
 		
 		elif [ -z "${i##*sitestats*}" ]
 		then
@@ -171,33 +174,42 @@ reindex() {
 			for IP in ${PINGS}
 			do
 				GRAPHNAME=$($i debug ${IP} | grep GRAPHNAME | cut -f 2 -d= )
-				VAR=${i%%.*}
-				echo "<h3>${VAR}</h3>" >> ${IDX}
-				GRAPHNAME=${GRAPHNAME##*/}
-	 			GRAPHNAME=${GRAPHNAME//.png/$DWMY.png}
-	 			echo "<p> <img src=\"${GRAPHNAME}\" alt="${GRAPHNAME}" /> </p>" >> ${IDX}
-				echo "<br />" >> ${IDX}
+				if [ -n "${GRAPHNAME}" ]
+				then
+					VAR=${i%%.*}
+					echo "<h3>${VAR}</h3>" >> ${IDX}
+					GRAPHNAME=${GRAPHNAME##*/}
+		 			GRAPHNAME=${GRAPHNAME//.png/$DWMY.png}
+		 			echo "<p> <img src=\"${GRAPHNAME}\" alt="${GRAPHNAME}" /> </p>" >> ${IDX}
+					echo "<br />" >> ${IDX}
+				fi
 			done
 		elif [ -z "${i##*webpage*}" ]
 		then
 			GRAPHNAMES=$($i debug ${IP} | grep GRAPHNAME | cut -f 2 -d= )
 			for GRAPHNAME in ${GRAPHNAMES}
 			do
+				if [ -n "${GRAPHNAME}" ]
+				then
+					VAR=${i%%.*}
+					echo "<h3>${VAR}</h3>" >> ${IDX}
+					GRAPHNAME=${GRAPHNAME##*/}
+					GRAPHNAME=${GRAPHNAME//.png/$DWMY.png}
+					echo "<p> <img src=\"${GRAPHNAME}\" alt="${GRAPHNAME}" /> </p>" >> ${IDX}
+					echo "<br />" >> ${IDX}
+				fi
+			done
+		else
+			GRAPHNAME=$($i debug | grep GRAPHNAME | cut -f 2 -d= )
+			if [ -n "${GRAPHNAME}" ]
+			then
 				VAR=${i%%.*}
 				echo "<h3>${VAR}</h3>" >> ${IDX}
 				GRAPHNAME=${GRAPHNAME##*/}
 				GRAPHNAME=${GRAPHNAME//.png/$DWMY.png}
 				echo "<p> <img src=\"${GRAPHNAME}\" alt="${GRAPHNAME}" /> </p>" >> ${IDX}
 				echo "<br />" >> ${IDX}
-			done
-		else
-			GRAPHNAME=$($i debug | grep GRAPHNAME | cut -f 2 -d= )
-			VAR=${i%%.*}
-			echo "<h3>${VAR}</h3>" >> ${IDX}
-			GRAPHNAME=${GRAPHNAME##*/}
-			GRAPHNAME=${GRAPHNAME//.png/$DWMY.png}
-			echo "<p> <img src=\"${GRAPHNAME}\" alt="${GRAPHNAME}" /> </p>" >> ${IDX}
-			echo "<br />" >> ${IDX}
+			fi
 		fi
 	done
 
