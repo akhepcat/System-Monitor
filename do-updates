@@ -100,7 +100,7 @@ reindex() {
 
 		echo "<p><center>" >>${IDX}
 		# menu header
-		for HF in $(ls ${WEBROOT}/*.html | sed "s^.*${WEBROOT}/^^g; s/\.html//g;") ;
+		for HF in $(find "${WEBROOT}" -maxdepth 1 -type f -iname '*.html' | sed "s^.*${WEBROOT}/^^g; s/\.html//g;" | sort -f) ;
 		do
 			if [ "${HF}" != "index" -a "${HF}" != "weekly" -a "${HF}" != "monthly" -a "${HF}" != "yearly" ]
 			then
