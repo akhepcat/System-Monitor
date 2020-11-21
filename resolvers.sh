@@ -63,9 +63,9 @@ do_index() {
 <body>
 <p>
 	I provide multiple statistics showing the general response health of the hosts below.<br />
-	All statistics are gathered once a minute and the charts are redrawn every 5 minutes.
-	Additionally, this page is automatically reloaded every 5 minutes.<br />
-	Last updated at ${DATE}<br />
+	All statistics are gathered once a minute and the charts are redrawn every 5 minutes.<br />
+	Additionally, this page is automatically reloaded every 5 minutes.
+	<br />Index page last generated on ${DATE}<br />
 </p>
 EOF
 
