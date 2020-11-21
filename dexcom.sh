@@ -32,6 +32,10 @@ PUSER="${USER}"
 PROG="${0##*/}"
 MYHOST="$(uname -n)"
 PROGNAME=${PROG%%.*}
+RRDBASE="${RRDLIB:-.}/${PROGNAME}-"
+GRAPHBASE="${WEBROOT:-.}/${PROGNAME}-"
+IDX="${WEBROOT:-.}/${PROGNAME}.html"
+
 CMD="$1"
 DATE=$(date)
 
@@ -148,6 +152,128 @@ dex_update() {
 
 }
 
+do_index() {
+### HEAD
+	cat >${IDX} <<EOF
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en" dir="ltr">
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+		<meta http-equiv="Content-Style-Type" content="text/css" />
+		<meta http-equiv="Refresh" content="300" />
+		<meta http-equiv="Pragma" content="no-cache" />
+		<meta http-equiv="Cache-Control" content="no-cache" />
+		<link rel="shortcut icon" href="favicon.ico" />
+		<title> Real time Statistics </title>
+	</head>
+EOF
+
+### BODY
+cat >>${IDX} <<EOF
+<body>
+<h2>dexcom Blood-Glucose Level stats</h2>
+<p>
+	All statistics are gathered once a minute and the charts are redrawn every 5 minutes.<br />
+	Additionally, this page is automatically reloaded every 5 minutes.
+	<br />Index page last generated on ${DATE}<br />
+</p>
+
+<table>
+  <tr><th colspan='2'>Daily</th><th colspan='2'>Weekly</th></tr>
+
+  <tr>
+    <td>&nbsp;</td>
+    <td><img src="${PROGNAME}-${dexcom_username}.png" /></td>
+    <td>&nbsp;</td>
+    <td><img src="${PROGNAME}-${dexcom_username}-week.png" /></td>
+  </tr>
+
+  <tr><th colspan='2'>Monthly</th><th colspan='2'>Yearly</th></tr>
+
+  <tr>
+    <td>&nbsp;</td>
+    <td><img src="${PROGNAME}-${dexcom_username}-month.png" /></td>
+    <td>&nbsp;</td>
+    <td><img src="${PROGNAME}-${dexcom_username}-year.png" /></td>
+  </tr>
+</table>
+<p /><hr />
+EOF
+
+### TAIL
+	cat >>${IDX} <<EOF
+<hr />
+<p> (c) akhepcat - <a href="https://github.com/akhepcat/System-Monitor">System-Monitor Suite</a> on Github!</p>
+</body>
+</html>
+EOF
+
+}
+
+do_graph() {
+	#defaults, overridden where needed
+
+	COMMENT="\t\t(trend visualization on graph is 20x)"
+	TREND="trend,20,*"
+	case $1 in
+		day)
+			TITLE="${dexcom_username} last 24 hours Blood-Glucose level - ${DATE}"
+			START=""
+			EXTRA="MINUTE:30:MINUTE:30:HOUR:1:0:%H"
+			TIMING="1 min"
+			COMMENT="\t(trend visualization on graph is 20x)"
+		;;
+		week)
+			GRAPHNAME="${GRAPHNAME//.png/-week.png}"
+			TITLE="${dexcom_username} last 7 days Blood-Glucose level - ${DATE}"
+			START="end-$LASTWEEK"
+			TIMING="5 min"
+		;;
+		month)
+	    		GRAPHNAME="${GRAPHNAME//.png/-month.png}"
+			TITLE="${dexcom_username} last month's Blood-Glucose level - ${DATE}"
+	    		START="end-$LASTMONTH"
+			TIMING="30 min"
+	    	;;
+		year)
+	    		GRAPHNAME="${GRAPHNAME//.png/-year.png}"
+			TITLE="${dexcom_username} last year's Blood-Glucose level - ${DATE}"
+	    		START="end-$LASTYEAR"
+			TIMING="2 hour"
+			TREND="trend,LOG,3.3,*,EXP"
+			COMMENT="\t\t(trend visualization on graph is 25x)"
+	    	;;
+	    	*) 	echo "broken graph call"
+	    		exit 1
+	    	;;
+	esac
+
+	rrdtool graph ${GRAPHNAME} \
+	        -Y -u 1.1 -l 0 -L 2  -v "Blood-Glucose level" -w 700 -h 300  -t "${TITLE}" \
+		-c ARROW\#000000  --end now \
+		${START:+--start $START}  ${EXTRA:+-x $EXTRA} \
+		DEF:bgl=${RRDFILE}:bgl:AVERAGE \
+		DEF:trend=${RRDFILE}:trend:AVERAGE \
+		CDEF:bigt=${TREND} \
+		COMMENT:"\t\t" \
+		LINE1:bgl\#${Bcolor}:" BGL average\t\t\t" \
+		LINE1:bigt\#${Tcolor}:" Trend average\t" \
+		COMMENT:"\l" \
+		COMMENT:"\t\t" \
+		GPRINT:bgl:MIN:"${TIMING} min\: %3.0lf\t\t\t" \
+		GPRINT:trend:MIN:"${TIMING} min\: %1.0lf\t" \
+		COMMENT:"\l" \
+		COMMENT:"\t\t" \
+		GPRINT:bgl:MAX:"${TIMING} max\: %3.0lf\t\t\t" \
+		GPRINT:trend:MAX:"${TIMING} max\: %1.0lf\t" \
+		COMMENT:"\l" \
+		COMMENT:"\t\t" \
+		GPRINT:bgl:AVERAGE:"${TIMING} avg\: %3.0lf\t\t\t" \
+		GPRINT:trend:AVERAGE:"${TIMING} avg\: %1.0lf\t" \
+		COMMENT:"\l" \
+		COMMENT:"\t\t\t\t${COMMENT}"
+}
+
 case ${CMD} in
 	(debug)
 		echo "RRDLIB=${RRDLIB}"
@@ -203,113 +329,16 @@ case ${CMD} in
 		N:${Value}:${Trend}
 		;;
 
-	(graph)
-	    rrdtool graph ${GRAPHNAME} \
-		-Y -u 1.1 -l 0 -L 2 -v "Blood-Glucose level" -w 700 -h 300 -t "${dexcom_username} last 24 hours Blood-Glucose level - ${DATE}" \
-		-c ARROW\#000000 -x MINUTE:30:MINUTE:30:HOUR:1:0:%H \
-		DEF:bgl=${RRDFILE}:bgl:AVERAGE \
-		DEF:trend=${RRDFILE}:trend:AVERAGE \
-		CDEF:bigt=trend,20,* \
-		COMMENT:"\t" \
-		LINE1:bgl\#${Bcolor}:" BGL average\t\t\t" \
-		LINE1:bigt\#${Tcolor}:" Trend average\t" \
-		COMMENT:"Trending Legend\:" \
-		COMMENT:"\l" \
-		COMMENT:"\t" \
-		GPRINT:bgl:MIN:"  1 min min\: %3.0lf\t\t" \
-		GPRINT:trend:MIN:"  1 min min\: %1.0lf\t\t" \
-		COMMENT:"1-3\: Trending lower" \
-		COMMENT:"\l" \
-		COMMENT:"\t" \
-		GPRINT:bgl:MAX:"  1 min max\: %3.0lf\t\t" \
-		GPRINT:trend:MAX:"  1 min max\: %1.0lf\t\t" \
-		COMMENT:"4\: Trending flat" \
-		COMMENT:"\l" \
-		COMMENT:"\t" \
-		GPRINT:bgl:AVERAGE:"  1 min avg\: %3.0lf\t\t" \
-		GPRINT:trend:AVERAGE:"  1 min avg\: %1.0lf\t\t" \
-		COMMENT:"5-7\: Trending higher" \
-		COMMENT:"\l" \
-		COMMENT:"\t" \
-		GPRINT:bgl:LAST:"    current\: %3.0lf\t\t" \
-		GPRINT:trend:LAST:"    current\: %1.0lf\t" \
-		COMMENT:"\l" \
-		COMMENT:"\t\t\t\t(trend visualization on graph is 20x)"
+	graph|graph-day)  do_graph day
 		;;
-	(graph-weekly)
-	    rrdtool graph ${GRAPHNAME//.png/-week.png} \
-		-Y -u 1.1 -l 0 -L 2 -v "Blood-Glucose level" -w 700 -h 300 -t "${dexcom_username} last 7 days Blood-Glucose level - ${DATE}" \
-                --end now --start end-$LASTWEEK -c ARROW\#000000  \
-		DEF:bgl=${RRDFILE}:bgl:AVERAGE \
-		DEF:trend=${RRDFILE}:trend:AVERAGE \
-		CDEF:bigt=trend,20,* \
-		COMMENT:"\t\t" \
-		LINE1:bgl\#${Bcolor}:" BGL average\t\t\t" \
-		LINE1:bigt\#${Tcolor}:" Trend average\t" \
-		COMMENT:"\l" \
-		COMMENT:"\t\t" \
-		GPRINT:bgl:MIN:"  5 min min\: %3.0lf\t\t" \
-		GPRINT:trend:MIN:"  5 min min\: %1.0lf\t" \
-		COMMENT:"\l" \
-		COMMENT:"\t\t" \
-		GPRINT:bgl:MAX:"  5 min max\: %3.0lf\t\t" \
-		GPRINT:trend:MAX:"  5 min max\: %1.0lf\t" \
-		COMMENT:"\l" \
-		COMMENT:"\t\t" \
-		GPRINT:bgl:AVERAGE:"  5 min avg\: %3.0lf\t\t" \
-		GPRINT:trend:AVERAGE:"  5 min avg\: %1.0lf\t" \
-		COMMENT:"\l" \
-		COMMENT:"\t\t\t\t\t\t(trend visualization on graph is 20x)"
+	graph-weekly)   do_graph week
 		;;
-	(graph-monthly)
-	    rrdtool graph ${GRAPHNAME//.png/-month.png} \
-		-Y -u 1.1 -l 0 -L 2 -v "Blood-Glucose level" -w 700 -h 300 -t "${dexcom_username} last month's Blood-Glucose level - ${DATE}" \
-                --end now --start end-$LASTMONTH -c ARROW\#000000  \
-		DEF:bgl=${RRDFILE}:bgl:AVERAGE \
-		DEF:trend=${RRDFILE}:trend:AVERAGE \
-		CDEF:bigt=trend,20,* \
-		COMMENT:"\t\t" \
-		LINE1:bgl\#${Bcolor}:" BGL average\t\t\t" \
-		LINE1:bigt\#${Tcolor}:" Trend average\t" \
-		COMMENT:"\l" \
-		COMMENT:"\t\t" \
-		GPRINT:bgl:MIN:" 30 min min\: %3.0lf\t\t" \
-		GPRINT:trend:MIN:" 30 min min\: %1.0lf\t" \
-		COMMENT:"\l" \
-		COMMENT:"\t\t" \
-		GPRINT:bgl:MAX:" 30 min max\: %3.0lf\t\t" \
-		GPRINT:trend:MAX:" 30 min max\: %1.0lf\t" \
-		COMMENT:"\l" \
-		COMMENT:"\t\t" \
-		GPRINT:bgl:AVERAGE:" 30 min avg\: %3.0lf\t\t" \
-		GPRINT:trend:AVERAGE:" 30 min avg\: %1.0lf\t" \
-		COMMENT:"\l" \
-		COMMENT:"\t\t\t\t\t\t(trend visualization on graph is 20x)"
+	graph-monthly)  do_graph month
 		;;
-	(graph-yearly)
-	    rrdtool graph ${GRAPHNAME//.png/-year.png} \
-		-Y -u 1.1 -l 0 -L 2 -v "Blood-Glucose level" -w 700 -h 300 -t "${dexcom_username} last year's Blood-Glucose level - ${DATE}" \
-                --end now --start end-$LASTYEAR -c ARROW\#000000  \
-		DEF:bgl=${RRDFILE}:bgl:AVERAGE \
-		DEF:trend=${RRDFILE}:trend:AVERAGE \
-		CDEF:bigt=trend,LOG,3.3,*,EXP \
-		COMMENT:"\t\t" \
-		LINE1:bgl\#${Bcolor}:" BGL average\t\t\t" \
-		LINE1:bigt\#${Tcolor}:" Trend average\t" \
-		COMMENT:"\l" \
-		COMMENT:"\t\t" \
-		GPRINT:bgl:MIN:" 2h min\: %3.0lf\t\t\t" \
-		GPRINT:trend:MIN:" 2h min\: %1.0lf\t" \
-		COMMENT:"\l" \
-		COMMENT:"\t\t" \
-		GPRINT:bgl:MAX:" 2h max\: %3.0lf\t\t\t" \
-		GPRINT:trend:MAX:" 2h max\: %1.0lf\t" \
-		COMMENT:"\l" \
-		COMMENT:"\t\t" \
-		GPRINT:bgl:AVERAGE:" 2h avg\: %3.0lf\t\t\t" \
-		GPRINT:trend:AVERAGE:" 2h avg\: %1.0lf\t" \
-		COMMENT:"\l" \
-		COMMENT:"\t\t\t\t\t\t(trend visualization on graph is 25x)"
+	graph-yearly)   do_graph year
+			do_index
+		;;
+	reindex)	do_index
 		;;
 	(*)
 		echo "Invalid option for ${PROGNAME}"
