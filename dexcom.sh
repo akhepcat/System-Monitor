@@ -279,7 +279,7 @@ case ${CMD} in
 		echo "RRDLIB=${RRDLIB}"
 		echo "WEBROOT=${WEBROOT}"
 		echo "RRDFILE=${RRDFILE}"
-		echo "GRAPHNAME=${GRAPHNAME}"
+		echo "IMGNAME=${GRAPHNAME}"
 
 		dex_update
 
