@@ -215,6 +215,9 @@ do_graph() {
 
 	COMMENT="\t\t(trend visualization on graph is 20x)"
 	TREND="trend,20,*"
+	T1=""; T2=""; T3=""; T4=""; T5=""; T6=""; T7=""; T8="";
+	BIGTL='trend'
+	SP='\t\t'
 	case $1 in
 		day)
 			TITLE="${dexcom_username} last 24 hours Blood-Glucose level - ${DATE}"
@@ -222,6 +225,16 @@ do_graph() {
 			EXTRA="MINUTE:30:MINUTE:30:HOUR:1:0:%H"
 			TIMING="1 min"
 			COMMENT="\t(trend visualization on graph is 20x)"
+			BIGTL='bigt'
+			SP='\t'
+			T1='COMMENT:Trending Legend\:'
+			T2='COMMENT:\t1-3\: Trending lower'
+			T3='COMMENT:\t4\: Trending flat'
+			T4='COMMENT:\t5-7\: Trending higher'
+			T5='COMMENT:\l'
+			T6='COMMENT:\t'
+			T7='GPRINT:bgl:LAST:  current\: %3.0lf\t\t'
+			T8='GPRINT:trend:LAST:\t  current\: %1.0lf\t'
 		;;
 		week)
 			GRAPHNAME="${GRAPHNAME//.png/-week.png}"
@@ -255,21 +268,29 @@ do_graph() {
 		DEF:bgl=${RRDFILE}:bgl:AVERAGE \
 		DEF:trend=${RRDFILE}:trend:AVERAGE \
 		CDEF:bigt=${TREND} \
-		COMMENT:"\t\t" \
+		COMMENT:"${SP}" \
 		LINE1:bgl\#${Bcolor}:" BGL average\t\t\t" \
-		LINE1:bigt\#${Tcolor}:" Trend average\t" \
+		LINE1:${BIGTL}\#${Tcolor}:" Trend average\t" \
+		${T1:+"$T1"} \
 		COMMENT:"\l" \
-		COMMENT:"\t\t" \
+		COMMENT:"${SP}" \
 		GPRINT:bgl:MIN:"${TIMING} min\: %3.0lf\t\t\t" \
 		GPRINT:trend:MIN:"${TIMING} min\: %1.0lf\t" \
+		${T2:+"$T2"} \
 		COMMENT:"\l" \
-		COMMENT:"\t\t" \
+		COMMENT:"${SP}" \
 		GPRINT:bgl:MAX:"${TIMING} max\: %3.0lf\t\t\t" \
 		GPRINT:trend:MAX:"${TIMING} max\: %1.0lf\t" \
+		${T3:+"$T3"} \
 		COMMENT:"\l" \
-		COMMENT:"\t\t" \
+		COMMENT:"${SP}" \
 		GPRINT:bgl:AVERAGE:"${TIMING} avg\: %3.0lf\t\t\t" \
 		GPRINT:trend:AVERAGE:"${TIMING} avg\: %1.0lf\t" \
+		${T4:+"$T4"} \
+		${T5:+"$T5"} \
+		${T6:+"$T6"} \
+		${T7:+"$T7"} \
+		${T8:+"$T8"} \
 		COMMENT:"\l" \
 		COMMENT:"\t\t\t\t${COMMENT}"
 }
