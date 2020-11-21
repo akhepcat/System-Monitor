@@ -159,7 +159,7 @@ do_graph() {
 		esac
 
 		rrdtool graph ${GRAPHNAME} \
-		        -Y -L 2  -v "DNS stats" -w 700 -h 300  -t "${TITLE}" \
+		        -Y -L 2  -v "response time in ms" -w 700 -h 300  -t "${TITLE}" \
 			-c ARROW\#000000  --end now \
 			${START:+--start $START}  ${EXTRA:+-x $EXTRA} \
 			DEF:dns1=${RRDFILE}:dns1:AVERAGE \
