@@ -212,55 +212,49 @@ EOF
 
 do_graph() {
 	#defaults, overridden where needed
-
-	COMMENT="\t\t(trend visualization on graph is 20x)"
-	TREND="trend,20,*"
+	GRAPHNAME="${WEBROOT:-.}/${PROGNAME}-${dexcom_username}.png"
 	T1=""; T2=""; T3=""; T4=""; T5=""; T6=""; T7=""; T8="";
-	BIGTL='trend'
-	SP='\t\t'
-	SCALE=""
+
+	TREND="trend,50,*"	# fixup the trendline so it plots in the middle of the graph
+	SP='\t\t'	# nominal spacing
+	XAXIS=""	# only the daily graph gets custom x-axis markers
+	T5='COMMENT:\l'	# extra line for the WMY graphs to make 'em closer to the same size
+	mTcolor=""	# hide the BGL trendline on non-daily graphs
 
 	case $1 in
 		day)
 			TITLE="${dexcom_username} last 24 hours Blood-Glucose level - ${DATE}"
 			START=""
-			EXTRA="MINUTE:30:MINUTE:30:HOUR:1:0:%H"
+			XAXIS="MINUTE:30:MINUTE:30:HOUR:1:0:%H"
 			TIMING="1 min"
-			SCALE="-u 1.1 -l 0 -Y -L 2"
-			COMMENT="\t(trend visualization on graph is 20x)"
-			BIGTL='bigt'
 			SP='\t'
 			T1='COMMENT:Trending Legend\:'
 			T2='COMMENT:\t1-3\: Trending lower'
 			T3='COMMENT:\t4\: Trending flat'
 			T4='COMMENT:\t5-7\: Trending higher'
-			T5='COMMENT:\l'
 			T6='COMMENT:\t'
 			T7='GPRINT:bgl:LAST:  current\: %3.0lf\t\t'
 			T8='GPRINT:trend:LAST:\t  current\: %1.0lf\t'
+			mTcolor=${Tcolor}
 		;;
 		week)
 			GRAPHNAME="${GRAPHNAME//.png/-week.png}"
 			TITLE="${dexcom_username} last 7 days Blood-Glucose level - ${DATE}"
 			START="end-$LASTWEEK"
 			TIMING="5 min"
-			EXTRA=""
 		;;
 		month)
 	    		GRAPHNAME="${GRAPHNAME//.png/-month.png}"
 			TITLE="${dexcom_username} last month's Blood-Glucose level - ${DATE}"
 	    		START="end-$LASTMONTH"
 			TIMING="30 min"
-			EXTRA=""
 	    	;;
 		year)
 	    		GRAPHNAME="${GRAPHNAME//.png/-year.png}"
 			TITLE="${dexcom_username} last year's Blood-Glucose level - ${DATE}"
 	    		START="end-$LASTYEAR"
 			TIMING="2 hour"
-			TREND="trend,LOG,3.3,*,EXP"
-			COMMENT="\t\t(trend visualization on graph is 25x)"
-			EXTRA=""
+			TREND="trend,LOG,3.8,*,EXP"	# we don't usually print this, but just in case, this widens the compressed data
 	    	;;
 	    	*) 	echo "broken graph call"
 	    		exit 1
@@ -268,15 +262,19 @@ do_graph() {
 	esac
 
 	rrdtool graph ${GRAPHNAME} \
-	        ${SCALE} -v "Blood-Glucose level" -w 700 -h 300  -t "${TITLE}" \
+	        -v "Blood-Glucose level" -w 700 -h 300  -t "${TITLE}" \
+		--upper-limit 1.1 --lower-limit 0 --alt-y-grid --units-length 2 \
+	        --right-axis-label "Glucose trends" \
+	        --right-axis 0.02:0 --right-axis-format %1.0lf \
+	        --use-nan-for-all-missing-data \
 		-c ARROW\#000000  --end now \
-		${START:+--start $START}  ${EXTRA:+-x $EXTRA} \
+		${START:+--start $START}  ${XAXIS:+-x $XAXIS} \
 		DEF:bgl=${RRDFILE}:bgl:AVERAGE \
 		DEF:trend=${RRDFILE}:trend:AVERAGE \
 		CDEF:bigt=${TREND} \
 		COMMENT:"${SP}" \
-		LINE1:bgl\#${Bcolor}:" BGL average\t\t\t" \
-		LINE1:${BIGTL}\#${Tcolor}:" Trend average\t" \
+		LINE2:bgl${Bcolor:+\#$Bcolor}:" BGL average\t\t\t" \
+		LINE1:bigt${mTcolor:+\#$mTcolor}:" Trend average\t" \
 		${T1:+"$T1"} \
 		COMMENT:"\l" \
 		COMMENT:"${SP}" \
@@ -297,8 +295,7 @@ do_graph() {
 		${T6:+"$T6"} \
 		${T7:+"$T7"} \
 		${T8:+"$T8"} \
-		COMMENT:"\l" \
-		COMMENT:"\t\t\t\t${COMMENT}"
+		COMMENT:"\l"
 }
 
 case ${CMD} in
