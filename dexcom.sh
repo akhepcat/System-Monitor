@@ -218,7 +218,8 @@ do_graph() {
 	TREND="trend,50,*"	# fixup the trendline so it plots in the middle of the graph
 	SP='\t\t'	# nominal spacing
 	XAXIS=""	# only the daily graph gets custom x-axis markers
-	T5='COMMENT:\l'	# extra line for the WMY graphs to make 'em closer to the same size
+	T5='COMMENT:\l'	# Two extra lines for the WMY graphs to make 'em closer to the same size
+	T6='COMMENT:  ' # ""
 	mTcolor=""	# hide the BGL trendline on non-daily graphs
 
 	case $1 in
