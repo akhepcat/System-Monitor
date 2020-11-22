@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-#  Just hardlink this file to the name of your drives, and it'll auto-set
+#  currently called in a loop from do-updates;  should we move the loop here?
 #
 
 [[ -r "/etc/default/sysmon.conf" ]] && source /etc/default/sysmon.conf
@@ -24,10 +24,24 @@ PROGNAME=${PROG%%.*}
 DATE=$(date)
 PATH=${PATH}:/sbin:/usr/sbin
 
+RRDBASE="${RRDLIB:-.}/response-"
+GRAPHBASE="${WEBROOT:-.}/response-"
+
+
 CMD=$1
 IP=$2
 
+IDX="${WEBROOT:-.}/response-${IP}.html"
+RRDFILE="${RRDBASE}${IP}.rrd"
+GRAPHNAME="${GRAPHBASE}${IP}.png"
+
 STATS=""
+
+# Choose your colors here
+PMINC=44FF44
+PMAXC=000ccc
+JITRC=ccc000
+LOSSC=FF0000
 
 if [ -z "$(which fping 2>&1 | grep -v which:)" -a -z "$(which ping 2>&1 | grep -v which:)" ]
 then
@@ -74,15 +88,151 @@ usage() {
 	echo "${PROG} (create|update|graph|graph-weekly|debug) <host>"
 }
 
+do_index() {
+### HEAD
+	PROGNAME="response"
+
+	cat >${IDX} <<EOF
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en" dir="ltr">
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+		<meta http-equiv="Content-Style-Type" content="text/css" />
+		<meta http-equiv="Refresh" content="300" />
+		<meta http-equiv="Pragma" content="no-cache" />
+		<meta http-equiv="Cache-Control" content="no-cache" />
+		<link rel="shortcut icon" href="favicon.ico" />
+		<title> Real time Statistics </title>
+	</head>
+<body>
+EOF
+
+### BODY
+cat >>${IDX} <<EOF
+<body>
+<h2>fping response stats: ${IP}</h2>
+<p>
+	I provide multiple statistics showing the general response health of the hosts below.<br />
+	All statistics are gathered once a minute and the charts are redrawn every 5 minutes.<br />
+	Additionally, this page is automatically reloaded every 5 minutes.
+	<br />Index page last generated on ${DATE}<br />
+</p>
+
+<table>
+  <tr><th colspan='2'>Daily</th><th colspan='2'>Weekly</th></tr>
+
+  <tr>
+    <td>&nbsp;</td>
+    <td><img src="${PROGNAME}-${IP}.png" /></td>
+    <td>&nbsp;</td>
+    <td><img src="${PROGNAME}-${IP}-week.png" /></td>
+  </tr>
+
+  <tr><th colspan='2'>Monthly</th><th colspan='2'>Yearly</th></tr>
+
+  <tr>
+    <td>&nbsp;</td>
+    <td><img src="${PROGNAME}-${IP}-month.png" /></td>
+    <td>&nbsp;</td>
+    <td><img src="${PROGNAME}-${IP}-year.png" /></td>
+  </tr>
+</table>
+<p /><hr />
+EOF
+
+### TAIL
+	cat >>${IDX} <<EOF
+<hr />
+<p> (c) akhepcat - <a href="https://github.com/akhepcat/System-Monitor">System-Monitor Suite</a> on Github!</p>
+</body>
+</html>
+EOF
+
+}
+
+do_graph() {
+	#defaults, overridden where needed
+	SP='\t    '	# nominal spacing
+	XAXIS=""	# only the daily graph gets custom x-axis markers
+
+	case $1 in
+		day)
+			TITLE="${MYHOST} last 24 hours ping stats for ${IP} - ${DATE}"
+			START=""
+			XAXIS="MINUTE:30:MINUTE:30:HOUR:1:0:%H"
+		;;
+		week)
+			GRAPHNAME="${GRAPHNAME//.png/-week.png}"
+			TITLE="${MYHOST} last 24 hours ping stats for ${IP} - ${DATE}"
+			START="end-$LASTWEEK"
+		;;
+		month)
+	    		GRAPHNAME="${GRAPHNAME//.png/-month.png}"
+			TITLE="${MYHOST} last 24 hours ping stats for ${IP} - ${DATE}"
+	    		START="end-$LASTMONTH"
+	    	;;
+		year)
+	    		GRAPHNAME="${GRAPHNAME//.png/-year.png}"
+			TITLE="${MYHOST} last 24 hours ping stats for ${IP} - ${DATE}"
+	    		START="end-$LASTYEAR"
+	    	;;
+	    	*) 	echo "broken graph call"
+	    		exit 1
+	    	;;
+	esac
+	rrdtool graph ${GRAPHNAME} \
+	        -v "${PROGNAME} stats" -w 700 -h 300  -t "${TITLE}" \
+		--upper-limit 1.1 --lower-limit 0 --alt-y-grid --units-length 2 \
+	        --right-axis-label "Glucose trends" \
+	        --right-axis 0.02:0 --right-axis-format %1.0lf \
+	        --use-nan-for-all-missing-data \
+		-c ARROW\#000000  --end now \
+		${START:+--start $START}  ${XAXIS:+-x $XAXIS} \
+		DEF:pingmin=${RRDFILE}:pingmin:AVERAGE \
+		DEF:pingmax=${RRDFILE}:pingmax:AVERAGE \
+		DEF:jitter=${RRDFILE}:jitter:AVERAGE \
+		DEF:pktloss=${RRDFILE}:pktloss:AVERAGE \
+		CDEF:lossinv=0,pktloss,- \
+		CDEF:jittinv=0,jitter,- \
+		COMMENT:"${SP}" \
+		LINE2:pingmin\#${PMINC}:"min RTT ms\t    " \
+		LINE2:pingmax\#${PMAXC}:"max RTT ms\t    " \
+		LINE1:jitter\#${JITRC}:" jitter ms\t    " \
+		LINE1:lossinv\#${LOSSC}:"pkt loss %" \
+		COMMENT:"\l" \
+		COMMENT:"${SP}" \
+		GPRINT:pingmin:MIN:" min\: %3.03lf\t    " \
+		GPRINT:pingmax:MIN:" min\: %3.03lf\t    " \
+		GPRINT:jitter:MIN:" min\: %3.03lf\t    " \
+		GPRINT:pktloss:MIN:" min\: %3.03lf" \
+		COMMENT:"\l" \
+		COMMENT:"${SP}" \
+		GPRINT:pingmin:MAX:" max\: %3.03lf\t    " \
+		GPRINT:pingmax:MAX:" max\: %3.03lf\t    " \
+		GPRINT:jitter:MAX:" max\: %3.03lf\t    " \
+		GPRINT:pktloss:MAX:" max\: %3.03lf" \
+		COMMENT:"\l" \
+		COMMENT:"${SP}" \
+		GPRINT:pingmin:AVERAGE:" avg\: %3.03lf\t    " \
+		GPRINT:pingmax:AVERAGE:" avg\: %3.03lf\t    " \
+		GPRINT:jitter:AVERAGE:" avg\: %3.03lf\t    " \
+		GPRINT:pktloss:AVERAGE:" avg\: %3.03lf" \
+		COMMENT:"\l" \
+		COMMENT:"${SP}" \
+		GPRINT:pingmin:LAST:"last\: %3.03lf\t    " \
+		GPRINT:pingmax:LAST:"last\: %3.03lf\t    " \
+		GPRINT:jitter:LAST:"last\: %3.03lf\t    " \
+		GPRINT:pktloss:LAST:"last\: %3.03lf" \
+		COMMENT:"\l"
+}
+
+
 if [ -z "$IP" ];
 then
 	echo "missing host"
 	usage
 	exit 1
 fi
-
-RRDFILE="${RRDLIB:-.}/response-${IP}.rrd"
-GRAPHNAME="${WEBROOT:-.}/response-${IP}.png"
 
 case $CMD in
 	debug)
@@ -143,177 +293,23 @@ case $CMD in
 		rrdtool update ${RRDFILE} N:${MIN}:${MAX}:${LOSS}:${JITTER}
 		;;
 
-	graph|graph-day)
-#	        -Y -u 1.1 -l 0 -L 2 \
-	    rrdtool graph ${GRAPHNAME} \
-	        -Y -L 2  \
-		-v "Ping stats" -w 700 -h 300 -t "${MYHOST} last 24 hours ping stats for ${IP} - ${DATE}" \
-		-c ARROW\#000000 -x MINUTE:30:MINUTE:30:HOUR:1:0:%H \
-		DEF:pingmin=${RRDFILE}:pingmin:AVERAGE \
-		DEF:pingmax=${RRDFILE}:pingmax:AVERAGE \
-		DEF:jitter=${RRDFILE}:jitter:AVERAGE \
-		DEF:pktloss=${RRDFILE}:pktloss:AVERAGE \
-		CDEF:lossinv=0,pktloss,- \
-		CDEF:jittinv=0,jitter,- \
-		COMMENT:"\l" \
-		COMMENT:"\t    " \
-		LINE2:pingmin\#44FF44:"min RTT ms\t    " \
-		LINE2:pingmax\#000ccc:"max RTT ms\t    " \
-		LINE1:jitter\#ccc000:"jitter ms\t    " \
-		LINE3:lossinv\#FF0000:"pkt loss %\t    " \
-		COMMENT:"\l" \
-		COMMENT:"\t    " \
-		GPRINT:pingmin:MIN:" min\: %3.03lf\t    " \
-		GPRINT:pingmax:MIN:" min\: %3.03lf\t    " \
-		GPRINT:jitter:MIN:" min\: %3.03lf\t    " \
-		GPRINT:pktloss:MIN:" min\: %3.03lf\t    " \
-		COMMENT:"\l" \
-		COMMENT:"\t    " \
-		GPRINT:pingmin:MAX:" max\: %3.03lf\t    " \
-		GPRINT:pingmax:MAX:" max\: %3.03lf\t    " \
-		GPRINT:jitter:MAX:" max\: %3.03lf\t    " \
-		GPRINT:pktloss:MAX:" max\: %3.03lf\t    " \
-		COMMENT:"\l" \
-		COMMENT:"\t    " \
-		GPRINT:pingmin:AVERAGE:" avg\: %3.03lf\t    " \
-		GPRINT:pingmax:AVERAGE:" avg\: %3.03lf\t    " \
-		GPRINT:jitter:AVERAGE:" avg\: %3.03lf\t    " \
-		GPRINT:pktloss:AVERAGE:" avg\: %3.03lf\t    " \
-		COMMENT:"\l" \
-		COMMENT:"\t    " \
-		GPRINT:pingmin:LAST:"last\: %3.03lf\t    " \
-		GPRINT:pingmax:LAST:"last\: %3.03lf\t    " \
-		GPRINT:jitter:LAST:"last\: %3.03lf\t    " \
-		GPRINT:pktloss:LAST:"last\: %3.03lf\t    " \
-		COMMENT:"\l"
+	graph|graph-day)  do_graph day
+		;;
+	graph-weekly)   do_graph week
+		;;
+	graph-monthly)  do_graph month
+		;;
+	graph-yearly)   do_graph year
+			do_index
+		;;
+	graph-all) for i in day week month year; do
+			echo "dbg: graphing ${i}"
+			do_graph ${i}
+		   done
+		;;
+	reindex)	do_index
 		;;
 
-	graph-weekly)
-    rrdtool graph ${GRAPHNAME//.png/-week.png} \
-		-v "Bytes" -w 700 -h 300 -t "${MYHOST} last 7 days ping stats for ${IP} - ${DATE}" \
-		--end now --start end-$LASTWEEK -c ARROW\#000000  \
-		DEF:pingmin=${RRDFILE}:pingmin:AVERAGE \
-		DEF:pingmax=${RRDFILE}:pingmax:AVERAGE \
-		DEF:jitter=${RRDFILE}:jitter:AVERAGE \
-		DEF:pktloss=${RRDFILE}:pktloss:AVERAGE \
-		CDEF:lossinv=0,pktloss,- \
-		CDEF:jittinv=0,jitter,- \
-		COMMENT:"\l" \
-		COMMENT:"\t    " \
-		LINE2:pingmin\#44FF44:"min RTT ms\t    " \
-		LINE2:pingmax\#000ccc:"max RTT ms\t    " \
-		LINE1:jitter\#ccc000:"jitter ms\t    " \
-		LINE3:lossinv\#FF0000:"pkt loss %\t    " \
-		COMMENT:"\l" \
-		COMMENT:"\t    " \
-		GPRINT:pingmin:MIN:" min\: %3.03lf\t    " \
-		GPRINT:pingmax:MIN:" min\: %3.03lf\t    " \
-		GPRINT:jitter:MIN:" min\: %3.03lf\t    " \
-		GPRINT:pktloss:MIN:" min\: %3.03lf\t    " \
-		COMMENT:"\l" \
-		COMMENT:"\t    " \
-		GPRINT:pingmin:MAX:" max\: %3.03lf\t    " \
-		GPRINT:pingmax:MAX:" max\: %3.03lf\t    " \
-		GPRINT:jitter:MAX:" max\: %3.03lf\t    " \
-		GPRINT:pktloss:MAX:" max\: %3.03lf\t    " \
-		COMMENT:"\l" \
-		COMMENT:"\t    " \
-		GPRINT:pingmin:AVERAGE:" avg\: %3.03lf\t    " \
-		GPRINT:pingmax:AVERAGE:" avg\: %3.03lf\t    " \
-		GPRINT:jitter:AVERAGE:" avg\: %3.03lf\t    " \
-		GPRINT:pktloss:AVERAGE:" avg\: %3.03lf\t    " \
-		COMMENT:"\l" \
-		COMMENT:"\t    " \
-		GPRINT:pingmin:LAST:"last\: %3.03lf\t    " \
-		GPRINT:pingmax:LAST:"last\: %3.03lf\t    " \
-		GPRINT:jitter:LAST:"last\: %3.03lf\t    " \
-		GPRINT:pktloss:LAST:"last\: %3.03lf\t    " \
-		COMMENT:"\l"
-		;;
-	graph-monthly)
-    rrdtool graph ${GRAPHNAME//.png/-month.png} \
-		-v "Bytes" -w 700 -h 300 -t "${MYHOST} last month's ping stats for ${IP} - ${DATE}" \
-		--end now --start end-$LASTMONTH -c ARROW\#000000  \
-		DEF:pingmin=${RRDFILE}:pingmin:AVERAGE \
-		DEF:pingmax=${RRDFILE}:pingmax:AVERAGE \
-		DEF:jitter=${RRDFILE}:jitter:AVERAGE \
-		DEF:pktloss=${RRDFILE}:pktloss:AVERAGE \
-		CDEF:lossinv=0,pktloss,- \
-		CDEF:jittinv=0,jitter,- \
-		COMMENT:"\l" \
-		COMMENT:"\t    " \
-		LINE2:pingmin\#44FF44:"min RTT ms\t    " \
-		LINE2:pingmax\#000ccc:"max RTT ms\t    " \
-		LINE1:jitter\#ccc000:"jitter ms\t    " \
-		LINE3:lossinv\#FF0000:"pkt loss %\t    " \
-		COMMENT:"\l" \
-		COMMENT:"\t    " \
-		GPRINT:pingmin:MIN:" min\: %3.03lf\t    " \
-		GPRINT:pingmax:MIN:" min\: %3.03lf\t    " \
-		GPRINT:jitter:MIN:" min\: %3.03lf\t    " \
-		GPRINT:pktloss:MIN:" min\: %3.03lf\t    " \
-		COMMENT:"\l" \
-		COMMENT:"\t    " \
-		GPRINT:pingmin:MAX:" max\: %3.03lf\t    " \
-		GPRINT:pingmax:MAX:" max\: %3.03lf\t    " \
-		GPRINT:jitter:MAX:" max\: %3.03lf\t    " \
-		GPRINT:pktloss:MAX:" max\: %3.03lf\t    " \
-		COMMENT:"\l" \
-		COMMENT:"\t    " \
-		GPRINT:pingmin:AVERAGE:" avg\: %3.03lf\t    " \
-		GPRINT:pingmax:AVERAGE:" avg\: %3.03lf\t    " \
-		GPRINT:jitter:AVERAGE:" avg\: %3.03lf\t    " \
-		GPRINT:pktloss:AVERAGE:" avg\: %3.03lf\t    " \
-		COMMENT:"\l" \
-		COMMENT:"\t    " \
-		GPRINT:pingmin:LAST:"last\: %3.03lf\t    " \
-		GPRINT:pingmax:LAST:"last\: %3.03lf\t    " \
-		GPRINT:jitter:LAST:"last\: %3.03lf\t    " \
-		GPRINT:pktloss:LAST:"last\: %3.03lf\t    " \
-		COMMENT:"\l"
-		;;
-	graph-yearly)
-    rrdtool graph ${GRAPHNAME//.png/-year.png} \
-		-v "Bytes" -w 700 -h 300 -t "${MYHOST} last year's ping stats for ${IP} - ${DATE}" \
-		--end now --start end-$LASTYEAR -c ARROW\#000000  \
-		DEF:pingmin=${RRDFILE}:pingmin:AVERAGE \
-		DEF:pingmax=${RRDFILE}:pingmax:AVERAGE \
-		DEF:jitter=${RRDFILE}:jitter:AVERAGE \
-		DEF:pktloss=${RRDFILE}:pktloss:AVERAGE \
-		CDEF:lossinv=0,pktloss,- \
-		CDEF:jittinv=0,jitter,- \
-		COMMENT:"\l" \
-		COMMENT:"\t    " \
-		LINE2:pingmin\#44FF44:"min RTT ms\t    " \
-		LINE2:pingmax\#000ccc:"max RTT ms\t    " \
-		LINE1:jitter\#ccc000:"jitter ms\t    " \
-		LINE3:lossinv\#FF0000:"pkt loss %\t    " \
-		COMMENT:"\l" \
-		COMMENT:"\t    " \
-		GPRINT:pingmin:MIN:" min\: %3.03lf\t    " \
-		GPRINT:pingmax:MIN:" min\: %3.03lf\t    " \
-		GPRINT:jitter:MIN:" min\: %3.03lf\t    " \
-		GPRINT:pktloss:MIN:" min\: %3.03lf\t    " \
-		COMMENT:"\l" \
-		COMMENT:"\t    " \
-		GPRINT:pingmin:MAX:" max\: %3.03lf\t    " \
-		GPRINT:pingmax:MAX:" max\: %3.03lf\t    " \
-		GPRINT:jitter:MAX:" max\: %3.03lf\t    " \
-		GPRINT:pktloss:MAX:" max\: %3.03lf\t    " \
-		COMMENT:"\l" \
-		COMMENT:"\t    " \
-		GPRINT:pingmin:AVERAGE:" avg\: %3.03lf\t    " \
-		GPRINT:pingmax:AVERAGE:" avg\: %3.03lf\t    " \
-		GPRINT:jitter:AVERAGE:" avg\: %3.03lf\t    " \
-		GPRINT:pktloss:AVERAGE:" avg\: %3.03lf\t    " \
-		COMMENT:"\l" \
-		COMMENT:"\t    " \
-		GPRINT:pingmin:LAST:"last\: %3.03lf\t    " \
-		GPRINT:pingmax:LAST:"last\: %3.03lf\t    " \
-		GPRINT:jitter:LAST:"last\: %3.03lf\t    " \
-		GPRINT:pktloss:LAST:"last\: %3.03lf\t    " \
-		COMMENT:"\l"
-		;;
 	*)
 		usage
 		exit 1
