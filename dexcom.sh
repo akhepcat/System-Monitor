@@ -218,12 +218,15 @@ do_graph() {
 	T1=""; T2=""; T3=""; T4=""; T5=""; T6=""; T7=""; T8="";
 	BIGTL='trend'
 	SP='\t\t'
+	SCALE=""
+
 	case $1 in
 		day)
 			TITLE="${dexcom_username} last 24 hours Blood-Glucose level - ${DATE}"
 			START=""
 			EXTRA="MINUTE:30:MINUTE:30:HOUR:1:0:%H"
 			TIMING="1 min"
+			SCALE="-u 1.1 -l 0 -Y -L 2"
 			COMMENT="\t(trend visualization on graph is 20x)"
 			BIGTL='bigt'
 			SP='\t'
@@ -241,12 +244,14 @@ do_graph() {
 			TITLE="${dexcom_username} last 7 days Blood-Glucose level - ${DATE}"
 			START="end-$LASTWEEK"
 			TIMING="5 min"
+			EXTRA=""
 		;;
 		month)
 	    		GRAPHNAME="${GRAPHNAME//.png/-month.png}"
 			TITLE="${dexcom_username} last month's Blood-Glucose level - ${DATE}"
 	    		START="end-$LASTMONTH"
 			TIMING="30 min"
+			EXTRA=""
 	    	;;
 		year)
 	    		GRAPHNAME="${GRAPHNAME//.png/-year.png}"
@@ -255,6 +260,7 @@ do_graph() {
 			TIMING="2 hour"
 			TREND="trend,LOG,3.3,*,EXP"
 			COMMENT="\t\t(trend visualization on graph is 25x)"
+			EXTRA=""
 	    	;;
 	    	*) 	echo "broken graph call"
 	    		exit 1
@@ -262,7 +268,7 @@ do_graph() {
 	esac
 
 	rrdtool graph ${GRAPHNAME} \
-	        -Y -u 1.1 -l 0 -L 2  -v "Blood-Glucose level" -w 700 -h 300  -t "${TITLE}" \
+	        ${SCALE} -v "Blood-Glucose level" -w 700 -h 300  -t "${TITLE}" \
 		-c ARROW\#000000  --end now \
 		${START:+--start $START}  ${EXTRA:+-x $EXTRA} \
 		DEF:bgl=${RRDFILE}:bgl:AVERAGE \
@@ -358,6 +364,11 @@ case ${CMD} in
 		;;
 	graph-yearly)   do_graph year
 			do_index
+		;;
+	graph-all) for i in day week month year; do
+			echo "dbg: graphing ${i}"
+			do_graph ${i}
+		   done
 		;;
 	reindex)	do_index
 		;;
