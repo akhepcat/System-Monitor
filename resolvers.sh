@@ -164,6 +164,7 @@ do_graph() {
 		rrdtool graph ${GRAPHNAME} \
 			-v "response time in ms" -w 700 -h 300  -t "${TITLE}" \
 			--upper-limit 1.1 --lower-limit 0 --alt-y-grid --units-length 2 \
+		        --use-nan-for-all-missing-data \
 			-c ARROW\#000000  --end now \
 			${START:+--start $START}  ${EXTRA:+-x $EXTRA} \
 			DEF:dns1=${RRDFILE}:dns1:AVERAGE \
