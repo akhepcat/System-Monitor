@@ -132,14 +132,11 @@ do_graph() {
 		dns3=${H//*$dns2,/}; dns3=${dns3%%,*}
 		dns4=${H//*$dns3,/}; dns4=${dns4%%,*}
 
-		SCALE=""
-
 		case $1 in
 			day)
 				TITLE="${MYHOST} last 24 hours DNS stats for ${Q} - ${DATE}"
 				START=""
 				EXTRA="MINUTE:30:MINUTE:30:HOUR:1:0:%H"
-				SCALE="-u 1.1 -l 0 -Y -L 2"
 			;;
 			week)
 				GRAPHNAME="${GRAPHNAME//.png/-week.png}"
@@ -165,7 +162,8 @@ do_graph() {
 		esac
 
 		rrdtool graph ${GRAPHNAME} \
-			${SCALE} -v "response time in ms" -w 700 -h 300  -t "${TITLE}" \
+			-v "response time in ms" -w 700 -h 300  -t "${TITLE}" \
+			--upper-limit 1.1 --lower-limit 0 --alt-y-grid --units-length 2 \
 			-c ARROW\#000000  --end now \
 			${START:+--start $START}  ${EXTRA:+-x $EXTRA} \
 			DEF:dns1=${RRDFILE}:dns1:AVERAGE \
