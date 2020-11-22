@@ -96,7 +96,13 @@ case ${CMD} in
 		do
 			echo "<div name=\"${RRD}\">" >> ${IDX}
 			echo "<a name=\"${RRD}\" />" >> ${IDX}
-			echo "<h2>${RRD}</h2>" >> ${IDX}
+
+			if [ -r "${WEBROOT:-.}/${PROGNAME}-${RRD}.html" ]
+			then
+				echo "<h2><a href='${PROGNAME}-${RRD}.html'>${RRD}</a></h2>" >> ${IDX}
+			else
+				echo "<h2>${RRD}</h2>" >> ${IDX}
+			fi
 			# Table, 4 cols
 			echo "<table>" >> ${IDX}
 			# daily, weekly
@@ -108,15 +114,17 @@ case ${CMD} in
 			graph="${PROGNAME}-${RRD}-week.png"
 			echo "<td><img src=\"${graph}\" /></td>" >> ${IDX}
 			echo "</tr>" >> ${IDX}
-			# monthly, yearly
-			echo "<tr><th colspan='2'>Monthly</th><th colspan='2'>Yearly</th></tr>" >> ${IDX}
-			echo "<tr><td>&nbsp;</td>" >> ${IDX}
-			graph="${PROGNAME}-${RRD}-month.png"
-			echo "<td><img src=\"${graph}\" /></td>" >> ${IDX}
-			echo "<td>&nbsp;</td>" >> ${IDX}
-			graph="${PROGNAME}-${RRD}-year.png"
-			echo "<td><img src=\"${graph}\" /></td>" >> ${IDX}
-			echo "</tr>" >> ${IDX}
+
+# this is now in the individual pages
+#			# monthly, yearly
+#			echo "<tr><th colspan='2'>Monthly</th><th colspan='2'>Yearly</th></tr>" >> ${IDX}
+#			echo "<tr><td>&nbsp;</td>" >> ${IDX}
+#			graph="${PROGNAME}-${RRD}-month.png"
+#			echo "<td><img src=\"${graph}\" /></td>" >> ${IDX}
+#			echo "<td>&nbsp;</td>" >> ${IDX}
+#			graph="${PROGNAME}-${RRD}-year.png"
+#			echo "<td><img src=\"${graph}\" /></td>" >> ${IDX}
+#			echo "</tr>" >> ${IDX}
 			echo "</table>" >> ${IDX}
 			echo "</div>" >> ${IDX}
 			echo "<p /><hr />" >> ${IDX}
