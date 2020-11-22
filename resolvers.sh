@@ -132,26 +132,32 @@ do_graph() {
 		dns3=${H//*$dns2,/}; dns3=${dns3%%,*}
 		dns4=${H//*$dns3,/}; dns4=${dns4%%,*}
 
+		SCALE=""
+
 		case $1 in
 			day)
 				TITLE="${MYHOST} last 24 hours DNS stats for ${Q} - ${DATE}"
 				START=""
 				EXTRA="MINUTE:30:MINUTE:30:HOUR:1:0:%H"
+				SCALE="-u 1.1 -l 0 -Y -L 2"
 			;;
 			week)
 				GRAPHNAME="${GRAPHNAME//.png/-week.png}"
 				TITLE="${MYHOST} last 7 days DNS stats for ${Q} - ${DATE}"
 				START="end-$LASTWEEK"
+				EXTRA=""
 			;;
 			month)
 		    		GRAPHNAME="${GRAPHNAME//.png/-month.png}"
 		    		TITLE="${MYHOST} last month's DNS stats for ${Q} - ${DATE}"
 		    		START="end-$LASTMONTH"
+				EXTRA=""
 		    	;;
 			year)
 		    		GRAPHNAME="${GRAPHNAME//.png/-year.png}"
 		    		TITLE="${MYHOST} last year's DNS stats for ${Q} - ${DATE}"
 		    		START="end-$LASTYEAR"
+				EXTRA=""
 		    	;;
 		    	*) 	echo "broken graph call"
 		    		exit 1
@@ -159,7 +165,7 @@ do_graph() {
 		esac
 
 		rrdtool graph ${GRAPHNAME} \
-		        -Y -L 2  -v "response time in ms" -w 700 -h 300  -t "${TITLE}" \
+			${SCALE} -v "response time in ms" -w 700 -h 300  -t "${TITLE}" \
 			-c ARROW\#000000  --end now \
 			${START:+--start $START}  ${EXTRA:+-x $EXTRA} \
 			DEF:dns1=${RRDFILE}:dns1:AVERAGE \
@@ -168,34 +174,34 @@ do_graph() {
 			DEF:dns4=${RRDFILE}:dns4:AVERAGE \
 			COMMENT:"\l" \
 			COMMENT:"    " \
-			LINE1:dns1\#44FF44:"${dns1:-adns1}    " \
-			LINE1:dns2\#000ccc:"${dns2:-adns2}    " \
-			LINE1:dns3\#ccc000:"${dns3:-adns3}    " \
-			LINE1:dns4\#FF0000:"${dns4:-adns4}    " \
+			LINE1:dns1\#44FF44:"${dns1:-adns1}\t" \
+			LINE1:dns2\#000ccc:"${dns2:-adns2}\t" \
+			LINE1:dns3\#ccc000:"${dns3:-adns3}\t" \
+			LINE1:dns4\#FF0000:"${dns4:-adns4}" \
 			COMMENT:"\l" \
-			COMMENT:"\t    " \
-			GPRINT:dns1:MIN:" min\: %3.03lf ms\t    " \
-			GPRINT:dns2:MIN:" min\: %3.03lf ms\t    " \
+			COMMENT:"    " \
+			GPRINT:dns1:MIN:" min\: %3.03lf ms\t\t" \
+			GPRINT:dns2:MIN:" min\: %3.03lf ms\t\t" \
 			GPRINT:dns3:MIN:" min\: %3.03lf ms\t    " \
-			GPRINT:dns4:MIN:" min\: %3.03lf ms\t    " \
+			GPRINT:dns4:MIN:" min\: %3.03lf ms" \
 			COMMENT:"\l" \
-			COMMENT:"\t    " \
-			GPRINT:dns1:MAX:" max\: %3.03lf ms\t    " \
-			GPRINT:dns2:MAX:" max\: %3.03lf ms\t    " \
+			COMMENT:"    " \
+			GPRINT:dns1:MAX:" max\: %3.03lf ms\t\t" \
+			GPRINT:dns2:MAX:" max\: %3.03lf ms\t\t" \
 			GPRINT:dns3:MAX:" max\: %3.03lf ms\t    " \
-			GPRINT:dns4:MAX:" max\: %3.03lf ms\t    " \
+			GPRINT:dns4:MAX:" max\: %3.03lf ms" \
 			COMMENT:"\l" \
-			COMMENT:"\t    " \
-			GPRINT:dns1:AVERAGE:" avg\: %3.03lf ms\t    " \
-			GPRINT:dns2:AVERAGE:" avg\: %3.03lf ms\t    " \
+			COMMENT:"    " \
+			GPRINT:dns1:AVERAGE:" avg\: %3.03lf ms\t\t" \
+			GPRINT:dns2:AVERAGE:" avg\: %3.03lf ms\t\t" \
 			GPRINT:dns3:AVERAGE:" avg\: %3.03lf ms\t    " \
-			GPRINT:dns4:AVERAGE:" avg\: %3.03lf ms\t    " \
+			GPRINT:dns4:AVERAGE:" avg\: %3.03lf ms" \
 			COMMENT:"\l" \
-			COMMENT:"\t    " \
-			GPRINT:dns1:LAST:"last\: %3.03lf ms\t    " \
-			GPRINT:dns2:LAST:"last\: %3.03lf ms\t    " \
+			COMMENT:"    " \
+			GPRINT:dns1:LAST:"last\: %3.03lf ms\t\t" \
+			GPRINT:dns2:LAST:"last\: %3.03lf ms\t\t" \
 			GPRINT:dns3:LAST:"last\: %3.03lf ms\t    " \
-			GPRINT:dns4:LAST:"last\: %3.03lf ms\t    " \
+			GPRINT:dns4:LAST:"last\: %3.03lf ms" \
 			COMMENT:"\l"
 	done
 }
@@ -320,6 +326,11 @@ case $CMD in
 		;;
 	graph-yearly)   do_graph year
 			do_index
+		;;
+	graph-all) for i in day week month year; do
+			echo "dbg: graphing ${i}"
+			do_graph ${i}
+		   done
 		;;
 	reindex)	do_index
 		;;
