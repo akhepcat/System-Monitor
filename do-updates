@@ -102,7 +102,7 @@ reindex() {
 		# menu header
 		for HF in $(find "${WEBROOT}" -maxdepth 1 -type f -iname '*.html' | sed "s^.*${WEBROOT}/^^g; s/\.html//g;" | sort -f) ;
 		do
-			if [ "${HF}" != "index" -a "${HF}" != "weekly" -a "${HF}" != "monthly" -a "${HF}" != "yearly" ]
+				if [ "${HF}" != "index" -a "${HF}" != "weekly" -a "${HF}" != "monthly" -a "${HF}" != "yearly" -a -n "${HF##*response-*}" ]
 			then
 				echo "<a href=\"${HF}.html\">${HF}</a>&nbsp;&nbsp;&nbsp;" >> ${IDX}
 			fi
@@ -177,7 +177,14 @@ reindex() {
 				if [ -n "${GRAPHNAME}" ]
 				then
 					VAR=${i%%.*}
-					echo "<h3>${VAR}</h3>" >> ${IDX}
+					URI=${GRAPHNAME%%.png}.html
+					if [ -r "${URI}" ]
+					then
+						URI=${URI##*/}
+						echo "<h3><span style='display:inline-block;'><big>${VAR}</big> - <a href='${URI}'>${IP}</a></span></h3>" >> ${IDX}
+					else
+						echo "<h3><span style='display:inline-block;'><big>${VAR}</big> - ${IP}</span></h3>" >> ${IDX}
+					fi
 					GRAPHNAME=${GRAPHNAME##*/}
 		 			GRAPHNAME=${GRAPHNAME//.png/$DWMY.png}
 		 			echo "<p> <img src=\"${GRAPHNAME}\" alt="${GRAPHNAME}" /> </p>" >> ${IDX}
