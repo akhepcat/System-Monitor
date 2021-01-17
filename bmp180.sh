@@ -128,7 +128,7 @@ EOF
 
 do_graph() {
 	#defaults, overridden where needed
-	SP='\t    '	# nominal spacing
+	SP='\t\t\t'	# nominal spacing
 	XAXIS=""	# only the daily graph gets custom x-axis markers
 
 	case $1 in
@@ -159,30 +159,33 @@ do_graph() {
 	rrdtool graph ${GRAPHNAME} \
 	        -v "${PROGNAME} stats" -w 700 -h 300  -t "${TITLE}" \
 		--upper-limit 1.1 --lower-limit 0 --alt-y-grid --units-length 2 \
+	        --right-axis-label "air pressure" \
+	        --right-axis 10:0 --right-axis-format %1.0lf \
 	        --use-nan-for-all-missing-data \
 		-c ARROW\#000000  --end now \
 		${START:+--start $START}  ${XAXIS:+-x $XAXIS} \
 		DEF:temps=${RRDFILE}:temps:AVERAGE \
 		DEF:press=${RRDFILE}:press:AVERAGE \
+		CDEF:bigp="press,.1,*" \
 		COMMENT:"${SP}" \
-		LINE2:temps\#${TCOL}:"Cur temp F\t    " \
-		LINE2:press\#${PCOL}:"Cur pres mb\t    " \
+		LINE2:temps\#${TCOL}:"Cur temp F${SP}" \
+		LINE2:bigp\#${PCOL}:"Cur pres mb${SP}" \
 		COMMENT:"\l" \
 		COMMENT:"${SP}" \
-		GPRINT:temps:MIN:" min\: %3.03lf\t    " \
-		GPRINT:press:MIN:" min\: %3.03lf\t    " \
+		GPRINT:temps:MIN:" min\: %3.03lf${SP}" \
+		GPRINT:press:MIN:" min\: %3.03lf${SP}" \
 		COMMENT:"\l" \
 		COMMENT:"${SP}" \
-		GPRINT:temps:MAX:" max\: %3.03lf\t    " \
-		GPRINT:press:MAX:" max\: %3.03lf\t    " \
+		GPRINT:temps:MAX:" max\: %3.03lf${SP}" \
+		GPRINT:press:MAX:" max\: %3.03lf${SP}" \
 		COMMENT:"\l" \
 		COMMENT:"${SP}" \
-		GPRINT:temps:AVERAGE:" avg\: %3.03lf\t    " \
-		GPRINT:press:AVERAGE:" avg\: %3.03lf\t    " \
+		GPRINT:temps:AVERAGE:" avg\: %3.03lf${SP}" \
+		GPRINT:press:AVERAGE:" avg\: %3.03lf${SP}" \
 		COMMENT:"\l" \
 		COMMENT:"${SP}" \
-		GPRINT:temps:LAST:"last\: %3.03lf\t    " \
-		GPRINT:press:LAST:"last\: %3.03lf\t    " \
+		GPRINT:temps:LAST:"last\: %3.03lf${SP}" \
+		GPRINT:press:LAST:"last\: %3.03lf${SP}" \
 		COMMENT:"\l"
 }
 
@@ -209,8 +212,8 @@ case $CMD in
                 if [ "${CMD}" == "force-create" -o ! -r ${RRDFILE} ];
                 then
 		rrdtool create ${RRDFILE} -s 60 \
-		DS:temps:GAUGE:180:0:100 \
-		DS:press:GAUGE:180:0:100 \
+		DS:temps:GAUGE:180:U:U \
+		DS:press:GAUGE:180:U:U \
 		RRA:AVERAGE:0.5:1:1440 \
 		RRA:MIN:0.5:1:1440 \
 		RRA:MAX:0.5:1:1440 \
