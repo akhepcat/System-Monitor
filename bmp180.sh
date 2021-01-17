@@ -157,9 +157,9 @@ do_graph() {
 	    	;;
 	esac
 	rrdtool graph ${GRAPHNAME} \
-	        -v "${PROGNAME} stats" -w 700 -h 300  -t "${TITLE}" \
+	        -v "${PROGNAME} temperature" -w 700 -h 300  -t "${TITLE}" \
 		--upper-limit 1.1 --lower-limit 0 --alt-y-grid --units-length 2 \
-	        --right-axis-label "air pressure" \
+	        --right-axis-label "${PROGNAME} air pressure" \
 	        --right-axis 10:0 --right-axis-format %1.0lf \
 	        --use-nan-for-all-missing-data \
 		-c ARROW\#000000  --end now \
@@ -172,20 +172,20 @@ do_graph() {
 		LINE2:bigp\#${PCOL}:"Cur pres mb${SP}" \
 		COMMENT:"\l" \
 		COMMENT:"${SP}" \
-		GPRINT:temps:MIN:" min\: %3.03lf${SP}" \
-		GPRINT:press:MIN:" min\: %3.03lf${SP}" \
+		GPRINT:temps:MIN:" min\: %3.02lf${SP}" \
+		GPRINT:press:MIN:" min\: %3.02lf${SP}" \
 		COMMENT:"\l" \
 		COMMENT:"${SP}" \
-		GPRINT:temps:MAX:" max\: %3.03lf${SP}" \
-		GPRINT:press:MAX:" max\: %3.03lf${SP}" \
+		GPRINT:temps:MAX:" max\: %3.02lf${SP}" \
+		GPRINT:press:MAX:" max\: %3.02lf${SP}" \
 		COMMENT:"\l" \
 		COMMENT:"${SP}" \
-		GPRINT:temps:AVERAGE:" avg\: %3.03lf${SP}" \
-		GPRINT:press:AVERAGE:" avg\: %3.03lf${SP}" \
+		GPRINT:temps:AVERAGE:" avg\: %3.02lf${SP}" \
+		GPRINT:press:AVERAGE:" avg\: %3.02lf${SP}" \
 		COMMENT:"\l" \
 		COMMENT:"${SP}" \
-		GPRINT:temps:LAST:"last\: %3.03lf${SP}" \
-		GPRINT:press:LAST:"last\: %3.03lf${SP}" \
+		GPRINT:temps:LAST:"last\: %3.02lf${SP}" \
+		GPRINT:press:LAST:"last\: %3.02lf${SP}" \
 		COMMENT:"\l"
 }
 
