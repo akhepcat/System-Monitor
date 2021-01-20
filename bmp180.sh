@@ -66,6 +66,7 @@ usage() {
 }
 
 do_index() {
+	WEBGRAPH=${GRAPHNAME##*/} ; WEBGRAPH=${WEBGRAPH%.*}
 ### HEAD
 
 	cat >${IDX} <<EOF
@@ -99,18 +100,18 @@ cat >>${IDX} <<EOF
 
   <tr>
     <td>&nbsp;</td>
-    <td><img src="${PROGNAME}-${MYHOST}.png" /></td>
+    <td><img src="${WEBGRAPH}.png" /></td>
     <td>&nbsp;</td>
-    <td><img src="${PROGNAME}-${MYHOST}-week.png" /></td>
+    <td><img src="${WEBGRAPH}-week.png" /></td>
   </tr>
 
   <tr><th colspan='2'>Monthly</th><th colspan='2'>Yearly</th></tr>
 
   <tr>
     <td>&nbsp;</td>
-    <td><img src="${PROGNAME}-${MYHOST}-month.png" /></td>
+    <td><img src="${WEBGRAPH}-month.png" /></td>
     <td>&nbsp;</td>
-    <td><img src="${PROGNAME}-${MYHOST}-year.png" /></td>
+    <td><img src="${WEBGRAPH}-year.png" /></td>
   </tr>
 </table>
 <p /><hr />
