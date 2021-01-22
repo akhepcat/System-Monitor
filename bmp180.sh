@@ -26,7 +26,7 @@ PATH=${PATH}:/sbin:/usr/sbin
 CMD=$1
 
 RRDFILE="${RRDLIB:-.}/${MYHOST}-${PROGNAME}.rrd"
-GRAPHNAME="${WEBROOT:-.}/${MYHOST}-${PROGNAME}.png"
+GRAPHBASE="${WEBROOT:-.}/${MYHOST}-${PROGNAME}.png"
 IDX="${WEBROOT:-.}/${MYHOST}-${PROGNAME}.html"
 
 STATS=""
@@ -66,7 +66,7 @@ usage() {
 }
 
 do_index() {
-	WEBGRAPH=${GRAPHNAME##*/} ; WEBGRAPH=${WEBGRAPH%.*}
+	WEBGRAPH=${GRAPHBASE##*/} ; WEBGRAPH=${WEBGRAPH%.*}
 ### HEAD
 
 	cat >${IDX} <<EOF
@@ -139,17 +139,17 @@ do_graph() {
 			XAXIS="MINUTE:30:MINUTE:30:HOUR:1:0:%H"
 		;;
 		week)
-			GRAPHNAME="${GRAPHNAME//.png/-week.png}"
+			GRAPHNAME="${GRAPHBASE//.png/-week.png}"
 			TITLE="${MYHOST} last 7 days' data for ${DATE}"
 			START="end-$LASTWEEK"
 		;;
 		month)
-	    		GRAPHNAME="${GRAPHNAME//.png/-month.png}"
+	    		GRAPHNAME="${GRAPHBASE//.png/-month.png}"
 			TITLE="${MYHOST} last months' data for ${DATE}"
 	    		START="end-$LASTMONTH"
 	    	;;
 		year)
-	    		GRAPHNAME="${GRAPHNAME//.png/-year.png}"
+	    		GRAPHNAME="${GRAPHBASE//.png/-year.png}"
 			TITLE="${MYHOST} last years' data for ${DATE}"
 	    		START="end-$LASTYEAR"
 	    	;;
@@ -195,7 +195,7 @@ case $CMD in
 		echo "RRDLIB=${RRDLIB}"
 		echo "WEBROOT=${WEBROOT}"
 		echo "RRDFILE=${RRDFILE}"
-		echo "GRAPHNAME=${GRAPHNAME}"
+		echo "GRAPHNAME=${GRAPHBASE}"
 		poll
 		if [ -z "${STATS##*BAD*}" ];
 		then
