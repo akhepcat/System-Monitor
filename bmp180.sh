@@ -50,6 +50,9 @@ done
 poll() {
 	if [ -n "${BMP}" ]
 	then
+		# {Traw} is Temperature_in_Centigrade, so convert here
+		# {Praw} is Pressure_in_Millibars * 10, so fix-up here
+		#
 		Traw=$(cat ${BMP}/in_temp_input)
 		Praw=$(cat ${BMP}/in_pressure_input)
 		TF=$( echo "scale=2; (($Traw/1000) * 9/5) + 32" | bc)
@@ -134,8 +137,10 @@ do_graph() {
 
 	case $1 in
 		day)
+			GRAPHNAME="${GRAPHBASE}"
 			TITLE="${MYHOST} last 24 hours' data for ${DATE}"
 			START=""
+			SCALE="--upper-limit 150 --alt-autoscale-min"
 			XAXIS="MINUTE:30:MINUTE:30:HOUR:1:0:%H"
 		;;
 		week)
@@ -157,20 +162,35 @@ do_graph() {
 	    		exit 1
 	    	;;
 	esac
+
+	if [ -z "${GRAPHNAME}" ]
+	then
+		echo "graphname is null"
+		echo "graphbase is $GRAPHBASE"
+		exit 1
+	fi
+
+	# the Lowest recorded pressure was: 870 hpa(mbar)
+	# the Average Mean Sea-Level pressure  is 1013.25 hPa(mbar)
+	# the Highest recorded pressure was: 1084.8 hPa(mbar)
+
+	# So to scale the data, we subtract 850 from the current value,
+	# but change the range of the right axis to start at 850, whic provides
+	# a 250mbar range from 850-1100. Which mostly works here.
+
 	rrdtool graph ${GRAPHNAME} \
 	        -v "${PROGNAME} temperature" -w 700 -h 300  -t "${TITLE}" \
-		--upper-limit 1.1 --lower-limit 0 --alt-y-grid --units-length 2 \
+		${SCALE} --alt-y-grid --units-length 2 \
 	        --right-axis-label "${PROGNAME} air pressure" \
-	        --right-axis 10:0 --right-axis-format %1.0lf \
+	        --right-axis 1:850 --right-axis-format %1.0lf \
 	        --use-nan-for-all-missing-data \
-		-c ARROW\#000000  --end now \
-		${START:+--start $START}  ${XAXIS:+-x $XAXIS} \
-		DEF:temps=${RRDFILE}:temps:AVERAGE \
-		DEF:press=${RRDFILE}:press:AVERAGE \
-		CDEF:bigp="press,.1,*" \
+		--color ARROW\#000000  --end now ${START:+--start $START}  ${XAXIS:+--x-grid $XAXIS} \
+		DEF:temps=${RRDFILE}:temps:LAST \
+		DEF:press=${RRDFILE}:press:LAST \
+		CDEF:bigp=press,850,- \
 		COMMENT:"${SP}" \
 		LINE2:temps\#${TCOL}:"Cur temp F${SP}" \
-		LINE2:bigp\#${PCOL}:"Cur pres mb${SP}" \
+		LINE2:bigp\#${PCOL}:"Cur pres mbar${SP}" \
 		COMMENT:"\l" \
 		COMMENT:"${SP}" \
 		GPRINT:temps:MIN:" min\: %3.02lf${SP}" \
@@ -254,6 +274,11 @@ case $CMD in
 		   done
 		;;
 	reindex)	do_index
+		;;
+	xport)
+		rrdtool xport --end now ${START:+--start $START} \
+			DEF:temps=${RRDFILE}:temps:LAST DEF:press=${RRDFILE}:press:LAST \
+			XPORT:temps:"farenheit" XPORT:press:"mbar"
 		;;
 
 	*)
