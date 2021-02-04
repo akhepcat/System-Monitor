@@ -14,6 +14,7 @@ TS=$(( ($HOUR * 3600) + ($MIN * 60) ))
 PUSER="${USER}"
 PROG="${0##*/}"
 MYHOST="$(uname -n)"
+MYHOST=${SERVERNAME:-$MYHOST}
 PROGNAME=${PROG%%.*}
 CMD="$1"
 DATE=$(date)
