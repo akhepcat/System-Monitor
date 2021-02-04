@@ -12,15 +12,6 @@ PROGNAME=${PROG%%.*}
 DATE=$(date)
 POLLCACHE=$(mktemp /tmp/speedtest.XXXXXXXX)
 CACHE=$(cat ${POLLCACHE} 2>/dev/null)
-# Values are in seconds, for  "--end now --start end-${DATE}"
-# yesterday, plus 4 hours
-YESTERDAY=90000
-# last week, plus a 6h
-LASTWEEK=648000
-# last month, plus a week
-LASTMONTH=3234543
-# last year, plus a month
-LASTYEAR=34819200
 CMD=$1
 
 EVERY=5		# Change this to poll every  X minutes: RRD still based on 1-minute polls,

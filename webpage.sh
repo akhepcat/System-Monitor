@@ -12,17 +12,6 @@ PROGNAME=${PROG%%.*}
 DATE=$(date)
 
 week=$((43200 * 15))
-# Values are in seconds, for  "--end now --start end-${DATE}"
-# yesterday, plus 4 hours
-YESTERDAY=90000
-# last week, plus a 6h
-LASTWEEK=648000
-# last month, plus a week
-LASTMONTH=3234543
-# last year, plus a month
-LASTYEAR=34819200
-
-
 
 CMD=$1
 URL=$2

@@ -12,16 +12,6 @@
 dexcom_username=${dexcom_username:-my_username}
 dexcom_password=${dexcom_password:-my_password}
 
-# Values are in seconds, for  "--end now --start end-${DATE}"
-# yesterday, plus 4 hours
-YESTERDAY=90000
-# last week, plus a 6h
-LASTWEEK=648000
-# last month, plus a week
-LASTMONTH=3234543
-# last year, plus a month
-LASTYEAR=34819200
-
 # Dexcom only updates every 5 minutes, so we use this to cache data except on the 5-minute mark
 HOUR=$(date +"%-H")	# we don't want zero-padded
 MIN=$(date +"%-M")	# ^^^
