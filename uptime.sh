@@ -6,6 +6,7 @@ PUSER="${USER}"
 PROG="${0##*/}"
 PROGNAME=${PROG%%.*}
 MYHOST="$(uname -n)"
+MYHOST=${SERVERNAME:-$MYHOST}
 CMD="$1"
 GRAPHNAME="${WEBROOT:-.}/${MYHOST}-uptime.gif"
 
