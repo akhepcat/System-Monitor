@@ -3,6 +3,9 @@
 #  Just hardlink this file to the name of your drives, and it'll auto-set
 #
 
+[[ -r "/etc/default/sysmon.conf" ]] && source /etc/default/sysmon.conf
+
+
 # Values are in seconds, for  "--end now --start end-${DATE}"
 # yesterday, plus 4 hours
 YESTERDAY=90000
@@ -17,6 +20,7 @@ LASTYEAR=34819200
 PUSER="${USER}"
 PROG="${0##*/}"
 MYHOST="$(uname -n)"
+MYHOST=${SERVERNAME:-$MYHOST}
 PROGNAME=${PROG%%.*}
 CMD="$1"
 LDRIVE="${PROG%%.*}"
@@ -33,6 +37,10 @@ then
 		#faked logical drive, we need to find it
 		PDRIVE=$(grep -w / /proc/mounts | grep -v rootfs | awk '{print $1}')
 		# /dev/sdb3
+		LDRIVE=${PDRIVE//\/dev\//}
+	elif [ -e "/dev/mapper/${LDRIVE}" ]
+	then
+		PDRIVE=$(readlink -f "/dev/mapper/${LDRIVE}" )
 		LDRIVE=${PDRIVE//\/dev\//}
 	else
 		# we could add support for UUID's or other labels, but for now...
