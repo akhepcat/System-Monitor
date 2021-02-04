@@ -183,7 +183,7 @@ do_graph() {
 	rrdtool graph ${GRAPHNAME} \
 	        -v "${PROGNAME} stats" -w 700 -h 300  -t "${TITLE}" \
 		--upper-limit 1.1 --lower-limit 0 --alt-y-grid --units-length 2 \
-	        --right-axis-label "Glucose trends" \
+	        --right-axis-label "fping trends" \
 	        --right-axis 0.02:0 --right-axis-format %1.0lf \
 	        --use-nan-for-all-missing-data \
 		-c ARROW\#000000  --end now \
