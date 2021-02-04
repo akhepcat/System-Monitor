@@ -10,6 +10,7 @@ EVERY=5	# Change this to poll every  X minutes: RRD still based on 1-minute poll
 PUSER="${USER}"
 PROG="${0##*/}"
 MYHOST="$(uname -n)"
+MYHOST=${SERVERNAME:-$MYHOST}
 PROGNAME=${PROG%%.*}
 DATE=$(date)
 # Values are in seconds, for  "--end now --start end-${DATE}"

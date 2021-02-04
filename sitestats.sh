@@ -3,11 +3,14 @@
 # This is an example of a custom script
 # it simply indexes a bunch of remote graphs
 
+[[ -r "/etc/default/sysmon.conf" ]] && source /etc/default/sysmon.conf
+
 #####################
 PUSER="${USER}"
 PROG="${0##*/}"
 PROGNAME=${PROG%%.*}
 MYHOST="$(uname -n)"
+MYHOST=${SERVERNAME:-$MYHOST}
 CMD="$1"
 PLUGBOXEN=$(find ${WEBROOT} -maxdepth 1 -type d -iname "plug*")
 

@@ -1,10 +1,13 @@
 #!/bin/bash
 #
 
+[[ -r "/etc/default/sysmon.conf" ]] && source /etc/default/sysmon.conf
+
 #####################
 PUSER="${USER}"
 PROG="${0##*/}"
 MYHOST="$(uname -n)"
+MYHOST=${SERVERNAME:-$MYHOST}
 PROGNAME=${PROG%%.*}
 DATE=$(date)
 POLLCACHE=$(mktemp /tmp/speedtest.XXXXXXXX)
