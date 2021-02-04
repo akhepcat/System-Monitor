@@ -19,6 +19,7 @@ PROG="${0##*/}"
 PROGNAME=${PROG%%.*}
 CMD="$1"
 MYHOST="$(uname -n)"
+MYHOST=${SERVERNAME:-$MYHOST}
 
 
 RRDFILE="${RRDLIB:-.}/${MYHOST}-mem.rrd"
