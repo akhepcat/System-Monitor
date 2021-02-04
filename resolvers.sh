@@ -21,6 +21,7 @@ LASTYEAR=34819200
 PUSER="${USER}"
 PROG="${0##*/}"
 MYHOST="$(uname -n)"
+MYHOST=${SERVERNAME:-$MYHOST}
 PROGNAME=${PROG%%.*}
 DATE=$(date)
 PATH=${PATH}:/sbin:/usr/sbin
