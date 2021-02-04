@@ -20,6 +20,7 @@ LASTYEAR=34819200
 PUSER="${USER}"
 PROG="${0##*/}"
 MYHOST="$(uname -n)"
+MYHOST=${SERVERNAME:-$MYHOST}
 IFACE="${PROG%%.*}"
 DATE=$(date)
 CMD="$1"
