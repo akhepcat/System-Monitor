@@ -220,13 +220,10 @@ do_graph() {
 			XAXIS="MINUTE:30:MINUTE:30:HOUR:1:0:%H"
 			TIMING="1 min"
 			SP='\t'
-			T1='COMMENT:Trending Legend\:'
-			T2='COMMENT:\t1-3\: Trending lower'
-			T3='COMMENT:\t4\: Trending flat'
-			T4='COMMENT:\t5-7\: Trending higher'
-			T6='COMMENT:\t'
-			T7='GPRINT:bgl:LAST:  current\: %3.0lf\t\t'
-			T8='GPRINT:trend:LAST:\t  current\: %1.0lf\t'
+			T5='COMMENT:\t'
+			T6='GPRINT:bgl:LAST:  current\: %3.0lf\t\t'
+			T7='GPRINT:trend:LAST:\t  current\: %1.0lf\t'
+			T8='COMMENT:\t9\: Signal Loss/No Data'
 			mTcolor=${Tcolor}
 		;;
 		week)
@@ -264,25 +261,31 @@ do_graph() {
 		DEF:bgl=${RRDFILE}:bgl:AVERAGE \
 		DEF:trend=${RRDFILE}:trend:AVERAGE \
 		CDEF:bigt=${TREND} \
+		\
 		COMMENT:"${SP}" \
 		LINE2:bgl${Bcolor:+\#$Bcolor}:" BGL average\t\t\t" \
 		LINE1:bigt${mTcolor:+\#$mTcolor}:" Trend average\t" \
-		${T1:+"$T1"} \
+		COMMENT:"Trending Legend\:" \
 		COMMENT:"\l" \
+		\
 		COMMENT:"${SP}" \
 		GPRINT:bgl:MIN:"${TIMING} min\: %3.0lf\t\t\t" \
 		GPRINT:trend:MIN:"${TIMING} min\: %1.0lf\t" \
-		${T2:+"$T2"} \
+		COMMENT:"\t1-3\: Trending lower" \
 		COMMENT:"\l" \
+		\
 		COMMENT:"${SP}" \
 		GPRINT:bgl:MAX:"${TIMING} max\: %3.0lf\t\t\t" \
 		GPRINT:trend:MAX:"${TIMING} max\: %1.0lf\t" \
-		${T3:+"$T3"} \
+		COMMENT:"\t4\: Trending flat" \
 		COMMENT:"\l" \
+		\
 		COMMENT:"${SP}" \
 		GPRINT:bgl:AVERAGE:"${TIMING} avg\: %3.0lf\t\t\t" \
 		GPRINT:trend:AVERAGE:"${TIMING} avg\: %1.0lf\t" \
-		${T4:+"$T4"} \
+		COMMENT:"\t5-7\: Trending higher" \
+		COMMENT:"\l" \
+		\
 		${T5:+"$T5"} \
 		${T6:+"$T6"} \
 		${T7:+"$T7"} \
