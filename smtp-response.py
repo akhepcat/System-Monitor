@@ -9,9 +9,10 @@ it will return the number of ms required to get a response from the server.
 import smtplib, ssl, time, socket, sys, getopt, dns.resolver
 
 def usage():
-  print('smtp-response-test -h [-s ,--server=]host [-p ,--port=]port')
-  print('    host:   hostname to check (mail.example.com)')
-  print('    port:   service port (25, 465, 587, etc)')
+  print('smtp-response-test -[hlsp] --[server,port,lookups]')
+  print('    h|host:     hostname to check (mail.example.com)')
+  print('    p|port:     service port (25, 465, 587, etc)')
+  print('    l|lookups:  additionally report DNS resolution time')
   print('')
   print(' returns:   milliseconds to receive response from server')
 
@@ -66,9 +67,10 @@ def mxchange(domain):
   
 #######################
 def main(argv):
+  dnstime = 0
 
   try:
-    opts, args = getopt.getopt(argv, "hs:p:",["server=","port="])
+    opts, args = getopt.getopt(argv, "hls:p:",["server=","port=","lookups"])
   except getopt.GetoptError:
     usage()
     sys.exit(2)
@@ -81,8 +83,13 @@ def main(argv):
       smtp_server = str(arg)
     elif opt in ("-p", "--port"):
       port = int(arg)
+    elif opt in ("-l", "--lookups"):
+      dnstime = 1
 
   port = 25;
+
+  if (dnstime > 0):
+    start = time.time_ns()
 
   dom=mydomainname()
   smtp_server = mxchange(dom)
@@ -97,14 +104,21 @@ def main(argv):
   except:
     smtp_ip = socket.getaddrinfo(smtp_server, None, socket.AF_INET6)[0][4][0]
 
+  if (dnstime > 0):
+    stop = time.time_ns()
+    dnsduration=(stop - start)/1000000
+
   context = ssl.create_default_context()
 
   start = time.time_ns()
   mailtest(smtp_server, port, context)
   stop = time.time_ns()
   duration=(stop - start)/1000000
-  print("{0:.0f}".format( duration) )
 
+  if (dnstime > 0):
+    print("{0:.0f}:{1:.0f}".format(dnsduration, duration) )
+  else:
+    print("{0:.0f}".format(duration) )
 
 if __name__ == "__main__":
   main(sys.argv[1:])
