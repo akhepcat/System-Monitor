@@ -1,4 +1,8 @@
-Collection of scripts that monitor a system or network.
+# System Monitor
+
+A loosely bound collection of scripts that monitor a system or network.
+
+# Contents
 
 * do-updates:  central script, called once a minute from crontab  
 * sda1.sh: symlinkable script (per partition/drive) for disk utilization  
@@ -13,5 +17,22 @@ Collection of scripts that monitor a system or network.
 * load.sh: displays the system CPU utilization  
 * sitestats.sh: internal script for rebuilding the web indices  
 * dexcom.sh:  Monitors your Dexcom G4/G5/G6 continuous glucose monitor data
+* bmp180.sh:  Monitors the temperature and humidity on a Raspberry Pi using a BMP180 or compatible sensor
+* resolvers.sh: Monitors the response time for DNS resolvers
 * page_load_time.pl:  called from webspeed.sh, used to display the total time to download an entire page with all dependancies  
 * sysmon.conf:  placed in /etc/default, defines/overrides the script parameters  
+
+
+# Supported datastores
+
+* rrdtool - the default datastore, supported by all scripts 
+* InfluxDB - a work in progress, supported by very few of the scripts
+
+# Usage
+
+Read the source, Luke! and the config file.  It's pretty simple!
+
+# Bugs
+
+It's probably got some.   
+
