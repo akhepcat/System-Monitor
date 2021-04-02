@@ -175,7 +175,7 @@ do_graph() {
 	        --right-axis-label "${PROGNAME} air pressure" \
 	        --right-axis 1:850 --right-axis-format %1.0lf \
 	        --use-nan-for-all-missing-data \
-		--color ARROW\#000000  --end now ${START:+--start $START}  ${XAXIS:+--x-grid $XAXIS} \
+		--color ARROW\#000000  ${START:+--end now} ${START:+--start $START}  ${XAXIS:+--x-grid $XAXIS} \
 		DEF:temps=${RRDFILE}:temps:LAST \
 		DEF:press=${RRDFILE}:press:LAST \
 		CDEF:bigp=press,850,- \
