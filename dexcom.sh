@@ -98,7 +98,6 @@ dex_update() {
 	get_data
 
 	Value=""
-
 	if [ -z "${result}" -o -n "${result##*Trend*Value*}" ]
 	then
 		# looks invalid, so refresh the cache
@@ -117,6 +116,7 @@ dex_update() {
 	fi
 	# if we get here, the session is valid, whether new or old
 	# so we parse the JSON data... horrible code follows:
+
 	WT=${result##*,}; WT=${WT##*\(}; WT=${WT%%\)*}
 	DT=${result%%,*}; DT=${DT##*\(}; DT=${DT%%\)*}
 	result="\"ST${result##*ST}"
@@ -126,7 +126,13 @@ dex_update() {
 	result=${result%%,\"Value*}
 	Trend=${result##*Trend\":}
 
-	if [ $Trend -lt 8 -a $Trend -gt 0 ]
+	# work around bad json data
+	Value=${Value//[^0-9]/}
+	Value=${Value:-U}
+	Trend=${Trend//[^0-9]/}
+	Trend=${Trend:-9}
+
+	if [ ${Trend:-0} -lt 8 -a ${Trend:-0} -gt 0 ]
 	then
 		# invert for better visualization of the trends, leaving 0 and 8-9 alone
 		Trend=$(( 8 - Trend ))
@@ -139,7 +145,7 @@ dex_update() {
 	#    ST=${ST%%+*}; ST=$((ST/1000)); ST=$(date --date="@${ST}")
 		
 	# This is just for debugging:
-	#    echo "WT=$WT,  Value=${Value}, Trend=${Trend} == ${Trends[$Trend]}"
+#	    echo "WT=$WT,  Value=${Value}, Trend=${Trend} == ${Trends[$Trend]}"
 
 }
 
