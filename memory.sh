@@ -16,8 +16,6 @@ DATE=$(date)
 RRDFILE="${RRDLIB:-.}/${MYHOST}-mem.rrd"
 GRAPHBASE="${WEBROOT:-.}/${MYHOST}-mem.png"
 
-DONTRRD=0	#override for now
-
 do_graph() {
 	if [ "${DONTRRD:-0}" = "1" ]
 	then
@@ -100,10 +98,22 @@ case $CMD in
 		        grep 'Swap[TF]' /proc/meminfo | \
                            sed  'N; {s/SwapTotal://; s/kB.*SwapFree://; s/kB//;}'| \
                            gawk '{ print ($1 * 1024) ":" (($1 - $2) * 1024) ":" ($2 * 1024) }')
+		if [ "${DONTRRD:-0}" != "1" ]
+		then
+			echo "Datastore RRD is enabled"
+		fi
+		if [ -n "${INFLUXURL}" ]
+		then
+			echo "Datastore InfluxDB is enabled"
+		fi
+		if [ "${DONTRRD:-0}" = "1" -a -z "${INFLUXURL}" ]
+		then
+			echo "FATAL: No datastore is defined"
+		fi
 		;;
 
         (force-create|create)
-                if [ "${CMD}" == "force-create" -o ! -r ${RRDFILE} ];
+                if [ "${DONTRRD:-0}" != "1" -a \( "${CMD}" == "force-create" -o ! -r ${RRDFILE} \) ];
                 then
 		rrdtool create ${RRDFILE} -s 60 \
 		DS:totalmem:GAUGE:180:U:U \
@@ -128,13 +138,60 @@ case $CMD in
 		fi
 		;;
 	(update)
-		rrdtool update ${RRDFILE} \
-		N:$(
-			grep -E '^(Mem|Buff|Cache)' /proc/meminfo | \
-			    gawk 'match($1,/^MemTotal:$/) { print $(NF-1)*1024 }; match($1,/^Buffers:$/) { print $(NF-1)*1024 }; match($1,/^Cached:$/) { print $(NF-1)*1024 };' | tr '\n' ':')$(
-		        grep Swap[TF] /proc/meminfo | \
+		if [ "${DONTRRD:-0}" = "1" -a -z "${INFLUXURL}" ]
+		then
+			echo "${PROG}:FATAL: No datastore defined"
+			exit 1
+		fi
+
+		MEM=$( grep -E '^(Mem|Buff|Cache)' /proc/meminfo | \
+			    gawk 'match($1,/^MemTotal:$/) { printf $(NF-1)*1024 ":" }; 
+			    	  match($1,/^Buffers:$/) { printf $(NF-1)*1024 ":" }; 
+			    	  match($1,/^Cached:$/) { print $(NF-1)*1024 };' )
+		SWAP=$(  grep -E 'Swap[TF]' /proc/meminfo | \
 			    sed  'N; {s/SwapTotal://; s/kB.*SwapFree://; s/kB//;}'| \
 			    gawk '{ print ($1 * 1024) ":" (($1 - $2) * 1024) ":" ($2 * 1024) }')
+
+		if [ -n "${INFLUXURL}" ]
+		then
+			status=$(curl -silent -I "${INFLUXURL//write*/}/ping"|grep -i X-Influxdb-Version)
+			if [ -z "${status}" ]
+			then
+				echo "${PROG}:FATAL: Can't connect to InfluxDB"
+				exit 1
+			fi
+			# we successfully pinged the url, so try writing
+			# we assume the URL already looks like http(s?)://host.name/write?db=foo&u=bar&p=baz
+			# yes, the newline is required for each point written
+			# we do not include the timestamp and let influx handle it as received.
+
+			totalmem=${MEM%%:*}
+			freemem=${MEM##*:}
+			usedmem=${MEM#*:}; usedmem=${usedmem##*:}
+
+			totalswap=${SWAP%%:*}
+			freeswap=${SWAP##*:}
+			usedswap=${SWAP#*:}; usedswap=${usedswap##*:}
+
+			status=$(curl -silent -i "${INFLUXURL}" --data-binary """
+			${PROG//.sh/},host=${MYHOST} totalmem=${totalmem}
+			${PROG//.sh/},host=${MYHOST}  usedmem=${usedmem}
+			${PROG//.sh/},host=${MYHOST}  freemem=${freemem}
+			${PROG//.sh/},host=${MYHOST} totalswap=${totalswap}
+			${PROG//.sh/},host=${MYHOST}  usedswap=${usedswap}
+			${PROG//.sh/},host=${MYHOST}  freeswap=${freeswap}
+			""")
+
+			if [ -n "${status}" -a -n "${status##*204 No Content*}" ]
+			then
+				echo "${PROG}:FATAL: Can't write to InfluxDB"
+				exit 1
+			fi
+		fi
+		if [ "${DONTRRD:-0}" != "1" ]
+		then
+			rrdtool update ${RRDFILE} N:${MEM}:${SWAP}
+		fi
 		;;
 	graph|graph-day)  do_graph day
 		;;
@@ -149,6 +206,17 @@ case $CMD in
 			do_graph ${i}
 		   done
 		;;
+	xport)
+		if [ "${DONTRRD:-0}" != "1" ]
+		then
+		    rrdtool xport --end now ${START:+--start $START} \
+			DEF:totalmem=${RRDFILE}:totalmem:LAST DEF:usedmem=${RRDFILE}:usedmem:LAST DEF:freemem=${RRDFILE}:freemem:LAST \
+			DEF:totalswap=${RRDFILE}:totalswap:LAST DEF:usedswap=${RRDFILE}:usedswap:LAST DEF:freeswap=${RRDFILE}:freeswap:LAST \
+			XPORT:totalmem:"total mem bytes" XPORT:usedmem:"used mem bytes" XPORT:freemem:"free mem bytes" \
+			XPORT:totalswap:"total swap bytes" XPORT:usedswap:"used swap bytes" XPORT:freeswap:"free swap bytes" 
+		fi
+		;;
+
 	(*)
 		echo "Invalid option for ${PROGNAME}"
 		echo "${PROG} (create|update|graph|graph-weekly|debug)"
