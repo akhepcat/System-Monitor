@@ -60,6 +60,10 @@ usage() {
 }
 
 do_index() {
+	if [ "${DONTRRD:-0}" = "1" ]
+	then
+		return
+	fi
 	WEBGRAPH=${GRAPHBASE##*/} ; WEBGRAPH=${WEBGRAPH%.*}
 ### HEAD
 
@@ -122,6 +126,10 @@ EOF
 }
 
 do_graph() {
+	if [ "${DONTRRD:-0}" = "1" ]
+	then
+		return
+	fi
 	#defaults, overridden where needed
 	SP='\t\t\t'	# nominal spacing
 	XAXIS=""	# only the daily graph gets custom x-axis markers
@@ -309,9 +317,12 @@ case $CMD in
 	reindex)	do_index
 		;;
 	xport)
-		rrdtool xport --end now ${START:+--start $START} \
+		if [ "${DONTRRD:-0}" != "1" ]
+		then
+		    rrdtool xport --end now ${START:+--start $START} \
 			DEF:temps=${RRDFILE}:temps:LAST DEF:press=${RRDFILE}:press:LAST \
 			XPORT:temps:"farenheit" XPORT:press:"mbar"
+		fi
 		;;
 
 	*)
