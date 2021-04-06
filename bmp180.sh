@@ -214,7 +214,10 @@ case $CMD in
 		echo "RRDLIB=${RRDLIB}"
 		echo "WEBROOT=${WEBROOT}"
 		echo "RRDFILE=${RRDFILE}"
-		echo "GRAPHNAME=${GRAPHBASE}"
+		if [ "${DONTRRD:-0}" != "1" ]
+		then
+			echo "GRAPHNAME=${GRAPHBASE}"
+		fi
 		poll
 		if [ -z "${STATS##*BAD*}" ];
 		then
@@ -229,6 +232,8 @@ case $CMD in
 		if [ "${DONTRRD:-0}" != "1" ]
 		then
 			echo "Datastore RRD is enabled"
+		else
+			echo "Datastore RRD is disabled"
 		fi
 		if [ -n "${INFLUXURL}" ]
 		then
