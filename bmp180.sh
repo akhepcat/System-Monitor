@@ -211,11 +211,11 @@ do_graph() {
 
 case $CMD in
 	debug)
-		echo "RRDLIB=${RRDLIB}"
-		echo "WEBROOT=${WEBROOT}"
-		echo "RRDFILE=${RRDFILE}"
 		if [ "${DONTRRD:-0}" != "1" ]
 		then
+			echo "RRDLIB=${RRDLIB}"
+			echo "WEBROOT=${WEBROOT}"
+			echo "RRDFILE=${RRDFILE}"
 			echo "GRAPHNAME=${GRAPHBASE}"
 		fi
 		poll
