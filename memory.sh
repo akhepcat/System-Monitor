@@ -88,10 +88,13 @@ do_graph() {
 
 case $CMD in
 	(debug)
-		echo "RRDLIB=${RRDLIB}"
-		echo "WEBROOT=${WEBROOT}"
-		echo "RRDFILE=${RRDFILE}"
-		echo "GRAPHBASE=${GRAPHBASE}"
+		if [ "${DONTRRD:-0}" != "1" ]
+		then
+			echo "RRDLIB=${RRDLIB}"
+			echo "WEBROOT=${WEBROOT}"
+			echo "RRDFILE=${RRDFILE}"
+			echo "GRAPHBASE=${GRAPHBASE}"
+		fi
 		echo N=$(
 			grep -E '^(Mem|Buff|Cache)' /proc/meminfo | \
 			    gawk 'match($1,/^MemTotal:$/) { print $(NF-1)*1024 }; match($1,/^Buffers:$/) { print $(NF-1)*1024 }; match($1,/^Cached:$/) { print $(NF-1)*1024 };' | tr '\n' ':')$(
@@ -101,6 +104,8 @@ case $CMD in
 		if [ "${DONTRRD:-0}" != "1" ]
 		then
 			echo "Datastore RRD is enabled"
+		else
+			echo "Datastore RRD is disabled"
 		fi
 		if [ -n "${INFLUXURL}" ]
 		then
