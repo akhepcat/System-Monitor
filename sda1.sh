@@ -18,7 +18,7 @@ DRIVE=${LDRIVE}	#we might overload this later...
 DATE=$(date)
 
 
-if [ -n "${LDRIVE##[hms]d*}" -a -n "${LDRIVE##nvme*}" ]
+if [ -n "${LDRIVE##[hms]d*}" -a -n "${LDRIVE##nvme*}" -a -n "${LDRIVE##mmcblk*}" ]
 then
    # if it's standard drive, fall through, otherwise...
 	if [ "${LDRIVE}" == "rootfs" ]
@@ -50,16 +50,35 @@ MOUNT="$(mount | grep -w ${LDRIVE} | awk '{print $3}')"
 
 case ${CMD} in
 	(debug)
-		echo "RRDLIB=${RRDLIB}"
-		echo "WEBROOT=${WEBROOT}"
-		echo "RRDFILE=${RRDFILE}"
-		echo "GRAPHNAME=${GRAPHNAME}"
-		echo "MOUNT=${MOUNT}"
+		if [ "${DONTRRD:-0}" != "1" ]
+		then
+			echo "RRDLIB=${RRDLIB}"
+			echo "WEBROOT=${WEBROOT}"
+			echo "RRDFILE=${RRDFILE}"
+			echo "GRAPHNAME=${GRAPHNAME}"
+			echo "MOUNT=${MOUNT}"
+		fi
+
 		echo N=$(grep -E ${LDRIVE}\[\ \\t\] /proc/diskstats | gawk '{ print $6":"$10 ; }')
+
+		if [ "${DONTRRD:-0}" != "1" ]
+		then
+			echo "Datastore RRD is enabled"
+		else
+			echo "Datastore RRD is disabled"
+		fi
+		if [ -n "${INFLUXURL}" ]
+		then
+			echo "Datastore InfluxDB is enabled"
+		fi
+		if [ "${DONTRRD:-0}" = "1" -a -z "${INFLUXURL}" ]
+		then
+			echo "FATAL: No datastore is defined"
+		fi
 		;;
 
         (force-create|create)
-                if [ ! -r ${RRDFILE} -o "${CMD}" == "force-create" ]
+                if [ "${DONTRRD:-0}" != "1" -a \( "${CMD}" == "force-create" -o ! -r ${RRDFILE} \) ];
                 then
 		rrdtool create ${RRDFILE} -s 60 \
 		DS:sectorread:COUNTER:180:U:U \
@@ -80,8 +99,41 @@ case ${CMD} in
 	      fi
 	      ;;
 	(update)
-		rrdtool update ${RRDFILE} \
-		N:$(grep -E ${LDRIVE}\[\ \\t\] /proc/diskstats | gawk '{ print $6":"$10 ; }');;
+		if [ "${DONTRRD:-0}" = "1" -a -z "${INFLUXURL}" ]
+		then
+			echo "${PROG}:FATAL: No datastore defined"
+			exit 1
+		fi
+
+		DATA=$(grep -E ${LDRIVE}\[\ \\t\] /proc/diskstats | gawk '{ print $6":"$10 ; }')
+
+		if [ -n "${INFLUXURL}" ]
+		then
+			status=$(curl -silent -I "${INFLUXURL//write*/}/ping"|grep -i X-Influxdb-Version)
+			if [ -z "${status}" ]
+			then
+				echo "${PROG}:FATAL: Can't connect to InfluxDB"
+				exit 1
+			fi
+			# we could ping the url so try writing
+			# we assume the URL already looks like http(s?)://host.name/write?db=foo&u=bar&p=baz
+			# yes, the newline is required for each point written
+			# we do not include the timestamp and let influx handle it as received.
+			status=$(curl -silent -i "${INFLUXURL}" --data-binary "disk_xfer_rate,host=${MYHOST},drive=${DRIVE} read=${DATA%:*}
+			disk_xfer_rate,host=${MYHOST},drive=${DRIVE} write=${DATA#*:}")
+
+			if [ -n "${status}" -a -n "${status##*204 No Content*}" ]
+			then
+				echo "${PROG}:FATAL: Can't write to InfluxDB"
+				exit 1
+			fi
+		fi
+		if [ "${DONTRRD:-0}" != "1" ]
+		then
+			rrdtool update ${RRDFILE} \
+				N:${DATA}
+		fi
+		;;
 	(graph)
 	    rrdtool graph ${GRAPHNAME} \
 		-v "Bits per second" -w 700 -h 300 -t "${MYHOST} last 24 hours throughput on ${MOUNT} - ${DATE}" \
