@@ -20,20 +20,45 @@ then
 	exit 1
 fi
 
+if [ -z "$(command -v curl)" ]
+then
+	echo "Error: prerequisite not found.  Please install 'curl'"
+	exit 1
+fi
+
 RRDFILE="${RRDLIB:-.}/${MYHOST}-${IFACE}.rrd"
 GRAPHNAME="${WEBROOT:-.}/${MYHOST}-${IFACE}.png"
 
 case ${CMD} in
 	(debug)
-		echo "RRDLIB=${RRDLIB}"
-		echo "WEBROOT=${WEBROOT}"
-		echo "RRDFILE=${RRDFILE}"
-		echo "GRAPHNAME=${GRAPHNAME}"
+		if [ "${DONTRRD:-0}" != "1" ]
+		then
+			echo "RRDLIB=${RRDLIB}"
+			echo "WEBROOT=${WEBROOT}"
+			echo "RRDFILE=${RRDFILE}"
+			echo "GRAPHNAME=${GRAPHNAME}"
+		fi
+
 		echo N:$(/sbin/ifconfig ${IFACE} | gawk 'match($0,/RX bytes:/) { print $(NF-6)":"$(NF-2) }; match($0,/RX.*bytes /) { print $(NF-2) }; match($0,/TX.*bytes /) { print $(NF-2) };' | tr '\n' ':' | sed 's/:$//g; s/bytes://g;')
+
+		if [ "${DONTRRD:-0}" != "1" ]
+		then
+			echo "Datastore RRD is enabled"
+		else
+			echo "Datastore RRD is disabled"
+		fi
+		if [ -n "${INFLUXURL}" ]
+		then
+			echo "Datastore InfluxDB is enabled"
+		fi
+		if [ "${DONTRRD:-0}" = "1" -a -z "${INFLUXURL}" ]
+		then
+			echo "FATAL: No datastore is defined"
+		fi
 		;;
 
         (force-create|create)
-                if [ "${CMD}" == "force-create" -o ! -r ${RRDFILE} ];
+                if [ "${DONTRRD:-0}" != "1" -a \( "${CMD}" == "force-create" -o ! -r ${RRDFILE} \) ];
                 then
 	# Decoded:
 	# -s 60   ==   60 second "step", or one poll per minute for each datasource
@@ -64,8 +89,42 @@ case ${CMD} in
 		fi
 		;;
 	(update)
-		rrdtool update ${RRDFILE} \
-		N:$(/sbin/ifconfig ${IFACE} | gawk 'match($0,/RX bytes:/) { print $(NF-6)":"$(NF-2) }; match($0,/RX.*bytes /) { print $(NF-2) }; match($0,/TX.*bytes /) { print $(NF-2) };' | tr '\n' ':' | sed 's/:$//g; s/bytes://g;')
+		if [ "${DONTRRD:-0}" = "1" -a -z "${INFLUXURL}" ]
+		then
+			echo "${PROG}:FATAL: No datastore defined"
+			exit 1
+		fi
+
+		# remove ifconfig requirement with awk!
+		DATA=$(awk "{ if (/${IFACE}/) { print \$2 \":\" \$10};}" /proc/net/dev)
+
+		if [ -n "${INFLUXURL}" ]
+		then
+			status=$(curl -silent -I "${INFLUXURL//write*/}/ping"|grep -i X-Influxdb-Version)
+			if [ -z "${status}" ]
+			then
+				echo "${PROG}:FATAL: Can't connect to InfluxDB"
+				exit 1
+			fi
+			# we could ping the url so try writing
+			# we assume the URL already looks like http(s?)://host.name/write?db=foo&u=bar&p=baz
+			# yes, the newline is required for each point written
+			# we do not include the timestamp and let influx handle it as received.
+			status=$(curl -silent -i "${INFLUXURL}" --data-binary "net_xfer_rate,host=${MYHOST},interface=${IFACE} receive=${DATA%:*}
+			net_xfer_rate,host=${MYHOST},interface=${IFACE} transmit=${DATA#*:}")
+
+			if [ -n "${status}" -a -n "${status##*204 No Content*}" ]
+			then
+				echo "${PROG}:FATAL: Can't write to InfluxDB"
+				exit 1
+			fi
+		fi
+		if [ "${DONTRRD:-0}" != "1" ]
+		then
+			rrdtool update ${RRDFILE} \
+				N:${DATA}
+		fi
+
 		;;
 	(graph)
     rrdtool graph ${GRAPHNAME} \
