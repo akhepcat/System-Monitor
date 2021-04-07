@@ -47,6 +47,7 @@ fi
 RRDFILE="${RRDLIB:-.}/${MYHOST}-${DRIVE}.rrd"
 GRAPHNAME="${WEBROOT:-.}/${MYHOST}-${DRIVE}.png"
 MOUNT="$(mount | grep -w ${LDRIVE} | awk '{print $3}')"
+[[ -z "${MOUNT}" ]] && MOUNT="$(mount | grep -w ${DRIVE} | awk '{print $3}')"
 
 case ${CMD} in
 	(debug)
