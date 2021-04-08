@@ -351,9 +351,9 @@ check_prereqs() {
 	then
 		REQS="${REQS:+$REQS }rrdtool"
 	fi
-	if [ -z "$(command -v ifconfig)" ];
+	if [ -z "$(command -v curl)" ];
 	then
-		REQS="net-tools(ifconfig)"
+		REQS="{REQS:+$REQS }curl"
 	fi
 	if [ -z "$(command -v wget)" ];
 	then
