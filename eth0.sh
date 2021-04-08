@@ -39,7 +39,9 @@ case ${CMD} in
 			echo "GRAPHNAME=${GRAPHNAME}"
 		fi
 
-		echo N:$(/sbin/ifconfig ${IFACE} | gawk 'match($0,/RX bytes:/) { print $(NF-6)":"$(NF-2) }; match($0,/RX.*bytes /) { print $(NF-2) }; match($0,/TX.*bytes /) { print $(NF-2) };' | tr '\n' ':' | sed 's/:$//g; s/bytes://g;')
+		DATA=$(awk "{ if (/${IFACE}/) { print \$2 \":\" \$10};}" /proc/net/dev)
+
+		echo N:${DATA}
 
 		if [ "${DONTRRD:-0}" != "1" ]
 		then
