@@ -18,19 +18,50 @@ DATE=$(date)
 RRDFILE="${RRDLIB:-.}/${MYHOST}-load.rrd"
 GRAPHNAME="${WEBROOT:-.}/${MYHOST}.png"
 
+poll() {
+	cpu=$(sed "s/\([0-9]\\.[0-9]\\{2\\}\)\ \([0-9]\\.[0-9]\\{2\\}\)\ \([0-9]\\.[0-9]\\{2\\}\).*/\1:\2:\3/" /proc/loadavg)
+	cpu1=${cpu%%:*}
+	cpu5=${cpu##*:}
+	cpu15=${cpu%:*}; cpu15=${cpu15##*:}
+
+	load=$(sed -n 's/^cpu\ \+\([0-9]*\)\ \([0-9]*\)\ \([0-9]*\).*/\1:\2:\3/p' /proc/stat)
+	user=${load%%:*}
+	sys=${load##*:}
+	nice=${load%:*}; nice=${nice##*:}
+}
+
 case ${CMD} in
 	(debug)
-		echo "RRDLIB=${RRDLIB}"
-		echo "WEBROOT=${WEBROOT}"
-		echo "RRDFILE=${RRDFILE}"
-		echo "GRAPHNAME=${GRAPHNAME//.png/-load.png}"
-		echo "GRAPHNAME=${GRAPHNAME//.png/-cpu.png}"
+		if [ "${DONTRRD:-0}" != "1" ]
+		then
+			echo "RRDLIB=${RRDLIB}"
+			echo "WEBROOT=${WEBROOT}"
+			echo "RRDFILE=${RRDFILE}"
+			echo "GRAPHNAME=${GRAPHNAME//.png/-load.png}"
+			echo "GRAPHNAME=${GRAPHNAME//.png/-cpu.png}"
+		fi
 
-		echo N=$(sed "s/\([0-9]\\.[0-9]\\{2\\}\)\ \([0-9]\\.[0-9]\\{2\\}\)\ \([0-9]\\.[0-9]\\{2\\}\).*/\1:\2:\3/" < /proc/loadavg):$(head -n 1 /proc/stat | sed "s/^cpu\ \+\([0-9]*\)\ \([0-9]*\)\ \([0-9]*\).*/\1:\2:\3/")
+		poll
+		echo "N:$cpu1:$cpu5:$cpu15:$user:$nice:$sys"
+		
+		if [ "${DONTRRD:-0}" != "1" ]
+		then
+			echo "Datastore RRD is enabled"
+		else
+			echo "Datastore RRD is disabled"
+		fi
+		if [ -n "${INFLUXURL}" ]
+		then
+			echo "Datastore InfluxDB is enabled"
+		fi
+		if [ "${DONTRRD:-0}" = "1" -a -z "${INFLUXURL}" ]
+		then
+			echo "FATAL: No datastore is defined"
+		fi
 		;;
 
         (force-create|create)
-                if [ "${CMD}" == "force-create" -o ! -r ${RRDFILE} ];
+                if [ "${DONTRRD:-0}" != "1" -a \( "${CMD}" == "force-create" -o ! -r ${RRDFILE} \) ];
                 then
 		rrdtool create ${RRDFILE} -s 60 \
 		DS:load1:GAUGE:180:0:U \
@@ -56,8 +87,43 @@ case ${CMD} in
 		;;
 
 	(update)
-		rrdtool update ${RRDFILE} \
-		N:$(sed "s/\([0-9]\\.[0-9]\\{2\\}\)\ \([0-9]\\.[0-9]\\{2\\}\)\ \([0-9]\\.[0-9]\\{2\\}\).*/\1:\2:\3/" < /proc/loadavg):$(head -n 1 /proc/stat | sed "s/^cpu\ \+\([0-9]*\)\ \([0-9]*\)\ \([0-9]*\).*/\1:\2:\3/")
+		if [ "${DONTRRD:-0}" = "1" -a -z "${INFLUXURL}" ]
+		then
+			echo "${PROG}:FATAL: No datastore defined"
+			exit 1
+		fi
+
+		poll
+
+		if [ -n "${INFLUXURL}" ]
+		then
+			status=$(curl -silent -I "${INFLUXURL//write*/}/ping"|grep -i X-Influxdb-Version)
+			if [ -z "${status}" ]
+			then
+				echo "${PROG}:FATAL: Can't connect to InfluxDB"
+				exit 1
+			fi
+			# we could ping the url so try writing
+			# we assume the URL already looks like http(s?)://host.name/write?db=foo&u=bar&p=baz
+			# yes, the newline is required for each point written
+			# we do not include the timestamp and let influx handle it as received.
+			status=$(curl -silent -i "${INFLUXURL}" --data-binary "cpu,host=${MYHOST} cpu1m=${cpu1}
+				cpu,host=${MYHOST} cpu5m=${cpu5}
+				cpu,host=${MYHOST} cpu15m=${cpu15}
+				load,host=${MYHOST} user=${user}
+				load,host=${MYHOST} nice=${nice}
+				load,host=${MYHOST} system=${sys}")
+
+			if [ -n "${status}" -a -n "${status##*204 No Content*}" ]
+			then
+				echo "${PROG}:FATAL: Can't write to InfluxDB"
+				exit 1
+			fi
+		fi
+		if [ "${DONTRRD:-0}" != "1" ]
+		then
+			rrdtool update ${RRDFILE} "N:$cpu1:$cpu5:$cpu15:$user:$nice:$sys"
+		fi
 		;;
 
 	(graph)
