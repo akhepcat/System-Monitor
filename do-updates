@@ -353,6 +353,10 @@ check_prereqs() {
 	then
 		REQS="${REQS:+$REQS }wget"
 	fi
+	if [ -z "$(command -v gawk)" ];
+	then
+		REQS="${REQS:+$REQS }gawk"
+	fi
 	if [ -z "$(command -v pbmtext)" -a -n "${PROGS}" -a -z "${PROGS##*uptime*}" ];
 	then
 		REQS="${REQS:+$REQS }netpbm"
