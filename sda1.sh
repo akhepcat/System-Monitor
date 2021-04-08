@@ -61,7 +61,7 @@ case ${CMD} in
 		fi
 
 		echo throughput=$(gawk -v drive="${LDRIVE}" '{ if ($0 ~ drive"[ \t]") { print $6":"$10 }; }' /proc/diskstats )
-		echo utilization=$(df -k /dev/${LDRIVE} | gawk -v drive="${LDRIVE}" '{if ($0 ~ drive) {printf $2 ":" $3} }')
+		echo utilization=$(df -k | gawk -v drive="${DRIVE}" '{if ($0 ~ drive) {printf $2 ":" $3} }')
 
 		if [ "${DONTRRD:-0}" != "1" ]
 		then
@@ -108,7 +108,7 @@ case ${CMD} in
 		fi
 
 		DATA=$(gawk -v drive="${LDRIVE}" '{ if ($0 ~ drive"[ \t]") { print $6":"$10 }; }' /proc/diskstats )
-		SPACE=$(df -k /dev/${LDRIVE} | gawk -v drive="${LDRIVE}" '{if ($0 ~ drive) {printf $2 ":" $3} }')
+		SPACE=$(df -k | gawk -v drive="${DRIVE}" '{if ($0 ~ drive) {printf $2 ":" $3} }')
 
 		if [ -n "${INFLUXURL}" ]
 		then
