@@ -3,7 +3,6 @@
 RRDLIB=/srv/rrds
 WEBROOT=/srv/http/sitestats
 PROGS="uptime.sh load.sh memory.sh eth0.sh speedtest.sh fping.sh webpage.sh" #webspeed.sh #sitestats.sh sda1.sh
-PINGS="8.8.8.8 9.9.9.9"
 
 [[ -r "/etc/default/sysmon.conf" ]] && source /etc/default/sysmon.conf
 
@@ -166,11 +165,6 @@ reindex() {
 
 		elif [ -z "${i##*fping*}" ]
 		then
-			if [ -z "${PINGS}" ];
-			then
-				echo "Need IP for fping, add to PINGS variable"
-				exit 1
-			fi
 			for IP in ${PINGS}
 			do
 				GRAPHNAME=$($i debug ${IP} | grep GRAPHNAME | cut -f 2 -d= )
@@ -382,15 +376,6 @@ check_prereqs() {
 
 ###########################################
 #  Main program
-
-if [ -z "${PROGS##*fping*}" ]
-then
-	if [ -z "${PINGS}" ];
-	then
-		echo "Need IP for fping, add to PINGS variable"
-		exit 1
-	fi
-fi
 
 check_prereqs
 
