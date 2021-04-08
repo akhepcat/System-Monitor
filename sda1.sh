@@ -136,6 +136,8 @@ case ${CMD} in
 		fi
 		;;
 	(graph)
+	if [ "${DONTRRD:-0}" != "1" ]
+	then
 	    rrdtool graph ${GRAPHNAME} \
 		-v "Bits per second" -w 700 -h 300 -t "${MYHOST} last 24 hours throughput on ${MOUNT} - ${DATE}" \
 		-c ARROW\#000000 -x MINUTE:30:MINUTE:30:HOUR:1:0:%H \
@@ -153,9 +155,12 @@ case ${CMD} in
 		GPRINT:readbits:MAX:"Read  maximum\: %.0lf%s bits/sec" \
 		GPRINT:writebits:MAX:"Write maximum\: %.0lf%s bits/sec" \
 		COMMENT:"	\j" 
+		fi
 		;;
 
 	(graph-weekly)
+	if [ "${DONTRRD:-0}" != "1" ]
+	then
 	    rrdtool graph ${GRAPHNAME//.png/-week.png} \
 		-v "Bits per second" -w 700 -h 300 -t "${MYHOST} last 7 days throughput on ${MOUNT} - ${DATE}" \
                 --end now --start end-$LASTWEEK -c ARROW\#000000  \
@@ -173,9 +178,12 @@ case ${CMD} in
 		GPRINT:readbits:MAX:"Read  maximum\: %.0lf%s bits/sec" \
 		GPRINT:writebits:MAX:"Write maximum\: %.0lf%s bits/sec" \
 		COMMENT:"	\j" 
+		fi
 		;;
 	(graph-monthly)
-	    rrdtool graph ${GRAPHNAME//.png/-month.png} \
+		if [ "${DONTRRD:-0}" != "1" ]
+		then
+		rrdtool graph ${GRAPHNAME//.png/-month.png} \
 		-v "Bits per second" -w 700 -h 300 -t "${MYHOST} last month's throughput on ${MOUNT} - ${DATE}" \
                 --end now --start end-$LASTMONTH -c ARROW\#000000  \
 		DEF:sread=${RRDFILE}:sectorread:AVERAGE \
@@ -192,9 +200,12 @@ case ${CMD} in
 		GPRINT:readbits:MAX:"Read  maximum\: %.0lf%s bits/sec" \
 		GPRINT:writebits:MAX:"Write maximum\: %.0lf%s bits/sec" \
 		COMMENT:"	\j" 
+		fi
 		;;
 	(graph-yearly)
-	    rrdtool graph ${GRAPHNAME//.png/-year.png} \
+		if [ "${DONTRRD:-0}" != "1" ]
+		then
+		rrdtool graph ${GRAPHNAME//.png/-year.png} \
 		-v "Bits per second" -w 700 -h 300 -t "${MYHOST} last year's throughput on ${MOUNT} - ${DATE}" \
                 --end now --start end-$LASTYEAR -c ARROW\#000000  \
 		DEF:sread=${RRDFILE}:sectorread:AVERAGE \
@@ -211,6 +222,7 @@ case ${CMD} in
 		GPRINT:readbits:MAX:"Read  maximum\: %.0lf%s bits/sec" \
 		GPRINT:writebits:MAX:"Write maximum\: %.0lf%s bits/sec" \
 		COMMENT:"	\j" 
+		fi
 		;;
 	(*)
 		echo "Invalid option for drive ${DRIVE}"

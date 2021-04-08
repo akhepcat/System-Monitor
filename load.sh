@@ -127,7 +127,9 @@ case ${CMD} in
 		;;
 
 	(graph)
-	    rrdtool graph ${GRAPHNAME//.png/-load.png} \
+		if [ "${DONTRRD:-0}" != "1" ]
+		then
+		    rrdtool graph ${GRAPHNAME//.png/-load.png} \
 		-Y -u 1.1 -l 0 -L 2 -v "CPU load" -w 700 -h 300 -t "${MYHOST} last 24 hours CPU load - ${DATE}" \
 		-c ARROW\#000000 -x MINUTE:30:MINUTE:30:HOUR:1:0:%H \
 		DEF:load1=${RRDFILE}:load1:AVERAGE \
@@ -176,9 +178,12 @@ case ${CMD} in
 		GPRINT:cpu:MAX:"max usage\: %2.02lf%%" \
 		GPRINT:cpu:AVERAGE:"avg usage\: %2.02lf%%" \
 		COMMENT:"\t\j"
+		fi
 		;;
 	(graph-weekly)
-	    rrdtool graph ${GRAPHNAME//.png/-load-week.png} \
+		if [ "${DONTRRD:-0}" != "1" ]
+		then
+		    rrdtool graph ${GRAPHNAME//.png/-load-week.png} \
 		-Y -u 1.1 -l 0 -L 2 -v "CPU load" -w 700 -h 300 -t "${MYHOST} last 7 days CPU load - ${DATE}" \
                 --end now --start end-$LASTWEEK -c ARROW\#000000  \
                 DEF:load1=${RRDFILE}:load1:AVERAGE \
@@ -222,9 +227,12 @@ case ${CMD} in
 		GPRINT:cpu:MAX:"max usage\: %2.02lf%%" \
 		GPRINT:cpu:AVERAGE:"avg usage\: %2.02lf%%" \
 		COMMENT:"\t\j"
+		fi
 		;;
 	(graph-monthly)
-	    rrdtool graph ${GRAPHNAME//.png/-load-month.png} \
+		if [ "${DONTRRD:-0}" != "1" ]
+		then
+		    rrdtool graph ${GRAPHNAME//.png/-load-month.png} \
 		-Y -u 1.1 -l 0 -L 2 -v "CPU load" -w 700 -h 300 -t "${MYHOST} last month's CPU load - ${DATE}" \
                 --end now --start end-$LASTMONTH -c ARROW\#000000  \
                 DEF:load1=${RRDFILE}:load1:AVERAGE \
@@ -268,9 +276,12 @@ case ${CMD} in
 		GPRINT:cpu:MAX:"max usage\: %2.02lf%%" \
 		GPRINT:cpu:AVERAGE:"avg usage\: %2.02lf%%" \
 		COMMENT:"\t\j"
+		fi
 		;;
 	(graph-yearly)
-	    rrdtool graph ${GRAPHNAME//.png/-load-year.png} \
+		if [ "${DONTRRD:-0}" != "1" ]
+		then
+		    rrdtool graph ${GRAPHNAME//.png/-load-year.png} \
 		-Y -u 1.1 -l 0 -L 2 -v "CPU load" -w 700 -h 300 -t "${MYHOST} last year's CPU load - ${DATE}" \
                 --end now --start end-$LASTYEAR -c ARROW\#000000  \
                 DEF:load1=${RRDFILE}:load1:AVERAGE \
@@ -314,6 +325,7 @@ case ${CMD} in
 		GPRINT:cpu:MAX:"max usage\: %2.02lf%%" \
 		GPRINT:cpu:AVERAGE:"avg usage\: %2.02lf%%" \
 		COMMENT:"\t\j"
+		fi
 		;;
 	(*)
 		echo "Invalid option for ${PROGNAME}"

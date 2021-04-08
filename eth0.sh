@@ -127,7 +127,9 @@ case ${CMD} in
 
 		;;
 	(graph)
-    rrdtool graph ${GRAPHNAME} \
+		if [ "${DONTRRD:-0}" != "1" ]
+		then
+		    rrdtool graph ${GRAPHNAME} \
 		-v "Bits per second" -w 700 -h 300 -t "${MYHOST} last 24 hours network throughput - ${DATE}" \
 		-c ARROW\#000000 -x MINUTE:30:MINUTE:30:HOUR:1:0:%H \
 		DEF:rxbytes=${RRDFILE}:rxbytes:AVERAGE \
@@ -148,9 +150,12 @@ case ${CMD} in
 		GPRINT:rx:AVERAGE:"Receive  average\: %.0lf%s Bits/sec" \
 		GPRINT:tx:AVERAGE:"Transmit average\: %.0lf%s Bits/sec" \
 		COMMENT:"	\j"
+		fi
 		;;
 	(graph-weekly)
-	    rrdtool graph ${GRAPHNAME//.png/-week.png} \
+		if [ "${DONTRRD:-0}" != "1" ]
+		then
+		    rrdtool graph ${GRAPHNAME//.png/-week.png} \
 		-v "Bits per second" -w 700 -h 300 -t "${MYHOST} last 7 days network throughput - ${DATE}" \
                 --end now --start end-$LASTWEEK -c ARROW\#000000  \
 		DEF:rxbytes=${RRDFILE}:rxbytes:AVERAGE \
@@ -171,9 +176,12 @@ case ${CMD} in
 		GPRINT:rx:AVERAGE:"Receive  average\: %.0lf%s Bits/sec" \
 		GPRINT:tx:AVERAGE:"Transmit average\: %.0lf%s Bits/sec" \
 		COMMENT:"	\j"
+		fi
 		;;
 	(graph-monthly)
-	    rrdtool graph ${GRAPHNAME//.png/-month.png} \
+		if [ "${DONTRRD:-0}" != "1" ]
+		then
+		    rrdtool graph ${GRAPHNAME//.png/-month.png} \
 		-v "Bits per second" -w 700 -h 300 -t "${MYHOST} last month's network throughput - ${DATE}" \
                 --end now --start end-$LASTMONTH -c ARROW\#000000  \
 		DEF:rxbytes=${RRDFILE}:rxbytes:AVERAGE \
@@ -194,9 +202,12 @@ case ${CMD} in
 		GPRINT:rx:AVERAGE:"Receive  average\: %.0lf%s Bits/sec" \
 		GPRINT:tx:AVERAGE:"Transmit average\: %.0lf%s Bits/sec" \
 		COMMENT:"	\j"
+		fi
 		;;
 	(graph-yearly)
-	    rrdtool graph ${GRAPHNAME//.png/-year.png} \
+		if [ "${DONTRRD:-0}" != "1" ]
+		then
+		    rrdtool graph ${GRAPHNAME//.png/-year.png} \
 		-v "Bits per second" -w 700 -h 300 -t "${MYHOST} last year's network throughput - ${DATE}" \
                 --end now --start end-$LASTYEAR -c ARROW\#000000  \
 		DEF:rxbytes=${RRDFILE}:rxbytes:AVERAGE \
@@ -217,6 +228,7 @@ case ${CMD} in
 		GPRINT:rx:AVERAGE:"Receive  average\: %.0lf%s Bits/sec" \
 		GPRINT:tx:AVERAGE:"Transmit average\: %.0lf%s Bits/sec" \
 		COMMENT:"	\j"
+		fi
 		;;
 	(*)
 		echo "Invalid option for IFACE ${IFACE}"
