@@ -60,7 +60,8 @@ case ${CMD} in
 			echo "MOUNT=${MOUNT}"
 		fi
 
-		echo N=$(grep -E ${LDRIVE}\[\ \\t\] /proc/diskstats | gawk '{ print $6":"$10 ; }')
+		echo throughput=$(gawk -v drive="${LDRIVE}" '{ if ($0 ~ drive"[ \t]") { print $6":"$10 }; }' /proc/diskstats )
+		echo utilization=$(df -k /dev/${LDRIVE} | gawk -v drive="${LDRIVE}" '{if ($0 ~ drive) {printf $2 ":" $3} }')
 
 		if [ "${DONTRRD:-0}" != "1" ]
 		then
@@ -106,7 +107,8 @@ case ${CMD} in
 			exit 1
 		fi
 
-		DATA=$(grep -E ${LDRIVE}\[\ \\t\] /proc/diskstats | gawk '{ print $6":"$10 ; }')
+		DATA=$(gawk -v drive="${LDRIVE}" '{ if ($0 ~ drive"[ \t]") { print $6":"$10 }; }' /proc/diskstats )
+		SPACE=$(df -k /dev/${LDRIVE} | gawk -v drive="${LDRIVE}" '{if ($0 ~ drive) {printf $2 ":" $3} }')
 
 		if [ -n "${INFLUXURL}" ]
 		then
@@ -121,7 +123,9 @@ case ${CMD} in
 			# yes, the newline is required for each point written
 			# we do not include the timestamp and let influx handle it as received.
 			status=$(curl -silent -i "${INFLUXURL}" --data-binary "disk_xfer_rate,host=${MYHOST},drive=${DRIVE},mount=${MOUNT} read=${DATA%:*}
-			disk_xfer_rate,host=${MYHOST},drive=${DRIVE},mount=${MOUNT} write=${DATA#*:}")
+			disk_xfer_rate,host=${MYHOST},drive=${DRIVE},mount=${MOUNT} write=${DATA#*:}
+			disk_usage,host=${MYHOST},drive=${DRIVE},mount=${MOUNT} size=${DATA%:*}
+			disk_usage,host=${MYHOST},drive=${DRIVE},mount=${MOUNT} free=${DATA#*:}")
 
 			if [ -n "${status}" -a -n "${status##*204 No Content*}" ]
 			then
