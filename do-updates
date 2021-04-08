@@ -341,7 +341,7 @@ do_auto()
 
 check_prereqs() {
 
-	if [ -z "$(command -v rrdtool)" ];
+	if [ -z "$(command -v rrdtool)" -a "${DONTRRD:-0}" != "1" ];
 	then
 		REQS="${REQS:+$REQS }rrdtool"
 	fi
@@ -353,12 +353,12 @@ check_prereqs() {
 	then
 		REQS="${REQS:+$REQS }wget"
 	fi
-	if [ -z "$(command -v pbmtext)" ];
+	if [ -z "$(command -v pbmtext)" -a -n "${PROGS}" -a -z "${PROGS##*uptime*}" ];
 	then
 		REQS="${REQS:+$REQS }netpbm"
 	fi
 
-	if [ -z "$(command -v fping)" ];
+	if [ -z "$(command -v fping)" -a \( ${USE_FPING:-0} -eq 1 \) ];
 	then
 		REQS="${REQS:+$REQS }fping"
 	fi
