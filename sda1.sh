@@ -124,8 +124,8 @@ case ${CMD} in
 			# we do not include the timestamp and let influx handle it as received.
 			status=$(curl -silent -i "${INFLUXURL}" --data-binary "disk_xfer_rate,host=${MYHOST},drive=${DRIVE},mount=${MOUNT} read=${DATA%:*}
 			disk_xfer_rate,host=${MYHOST},drive=${DRIVE},mount=${MOUNT} write=${DATA#*:}
-			disk_usage,host=${MYHOST},drive=${DRIVE},mount=${MOUNT} size=${DATA%:*}
-			disk_usage,host=${MYHOST},drive=${DRIVE},mount=${MOUNT} free=${DATA#*:}")
+			disk_usage,host=${MYHOST},drive=${DRIVE},mount=${MOUNT} size=${SPACE%:*}
+			disk_usage,host=${MYHOST},drive=${DRIVE},mount=${MOUNT} free=${SPACE#*:}")
 
 			if [ -n "${status}" -a -n "${status##*204 No Content*}" ]
 			then
