@@ -39,7 +39,7 @@ case ${CMD} in
 			echo "GRAPHNAME=${GRAPHNAME}"
 		fi
 
-		DATA=$(awk "{ if (/${IFACE}/) { print \$2 \":\" \$10};}" /proc/net/dev)
+		DATA=$(gawk -v iface="${IFACE}" '{ if ($0 ~ iface) { print $2 ":" $10}; }' /proc/net/dev)
 
 		echo N:${DATA}
 
@@ -98,7 +98,7 @@ case ${CMD} in
 		fi
 
 		# remove ifconfig requirement with awk!
-		DATA=$(awk "{ if (/${IFACE}/) { print \$2 \":\" \$10};}" /proc/net/dev)
+		DATA=$(gawk -v iface="${IFACE}" '{ if ($0 ~ iface) { print $2 ":" $10}; }' /proc/net/dev)
 
 		if [ -n "${INFLUXURL}" ]
 		then
