@@ -126,25 +126,25 @@ do_graph() {
 
 		case $1 in
 			day)
-				TITLE="${MYHOST} last 24 hours DNS stats for ${Q} - ${DATE}"
+				TITLE="${MYHOST} last 24 hours DNS stats for ${Q} <br> ${DATE}"
 				START=""
 				EXTRA="MINUTE:30:MINUTE:30:HOUR:1:0:%H"
 			;;
 			week)
 				GRAPHNAME="${GRAPHNAME//.png/-week.png}"
-				TITLE="${MYHOST} last 7 days DNS stats for ${Q} - ${DATE}"
+				TITLE="${MYHOST} last 7 days DNS stats for ${Q} <br> ${DATE}"
 				START="end-$LASTWEEK"
 				EXTRA=""
 			;;
 			month)
 		    		GRAPHNAME="${GRAPHNAME//.png/-month.png}"
-		    		TITLE="${MYHOST} last month's DNS stats for ${Q} - ${DATE}"
+		    		TITLE="${MYHOST} last month's DNS stats for ${Q} <br> ${DATE}"
 		    		START="end-$LASTMONTH"
 				EXTRA=""
 		    	;;
 			year)
 		    		GRAPHNAME="${GRAPHNAME//.png/-year.png}"
-		    		TITLE="${MYHOST} last year's DNS stats for ${Q} - ${DATE}"
+		    		TITLE="${MYHOST} last year's DNS stats for ${Q} <br> ${DATE}"
 		    		START="end-$LASTYEAR"
 				EXTRA=""
 		    	;;
