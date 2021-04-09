@@ -252,10 +252,10 @@ case $CMD in
 			if [ ! -r "${RRDFILE}" -o "${CMD}" == "force-create" ]
 			then
 			    rrdtool create ${RRDFILE} -s 60 \
-				DS:dns1:GAUGE:180:0:100 \
-				DS:dns2:GAUGE:180:0:100 \
-				DS:dns3:GAUGE:180:0:100 \
-				DS:dns4:GAUGE:180:0:100 \
+				DS:dns1:GAUGE:180:0:250 \
+				DS:dns2:GAUGE:180:0:250 \
+				DS:dns3:GAUGE:180:0:250 \
+				DS:dns4:GAUGE:180:0:250 \
 				RRA:AVERAGE:0.5:1:1440 \
 				RRA:MIN:0.5:1:1440 \
 				RRA:MAX:0.5:1:1440 \
