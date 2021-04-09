@@ -159,32 +159,32 @@ do_graph() {
 		ldns3=${#dns3}
 		if [ $ldns1 -le 20 ]
 		then
-			SP1="\t\t"
+			SP1="\t"
 		elif [ $ldns1 -gt 20 ]
 		then
-			SP1="\t"
-		else
 			SP1=" "
+		else
+			SP1="    "
 		fi
 
 		if [ $ldns2 -le 20 ]
 		then
-			SP2="\t\t"
+			SP2="\t"
 		elif [ $ldns2 -gt 20 ]
 		then
-			SP2="\t"
-		else
 			SP2=" "
+		else
+			SP2="    "
 		fi
 
 		if [ $ldns3 -le 20 ]
 		then
-			SP3="\t\t"
+			SP3="\t"
 		elif [ $ldns3 -gt 20 ]
 		then
-			SP3="\t"
-		else
 			SP3=" "
+		else
+			SP3="    "
 		fi
 		
 		rrdtool graph ${GRAPHNAME} \
@@ -205,28 +205,28 @@ do_graph() {
 			LINE1:dns4\#FF0000:"${dns4:-adns4}" \
 			COMMENT:"\l" \
 			COMMENT:"${PreSP}" \
-			GPRINT:dns1:MIN:" min\: %3.03lf ms\t\t" \
-			GPRINT:dns2:MIN:" min\: %3.03lf ms\t\t" \
-			GPRINT:dns3:MIN:" min\: %3.03lf ms\t" \
-			GPRINT:dns4:MIN:" min\: %3.03lf ms" \
+			GPRINT:dns1:MIN:" min\: %3.02lf ms\t\t" \
+			GPRINT:dns2:MIN:" min\: %3.02lf ms\t\t" \
+			GPRINT:dns3:MIN:" min\: %3.02lf ms\t\t" \
+			GPRINT:dns4:MIN:" min\: %3.02lf ms" \
 			COMMENT:"\l" \
 			COMMENT:"${PreSP}" \
-			GPRINT:dns1:MAX:" max\: %3.03lf ms\t\t" \
-			GPRINT:dns2:MAX:" max\: %3.03lf ms\t\t" \
-			GPRINT:dns3:MAX:" max\: %3.03lf ms\t" \
-			GPRINT:dns4:MAX:" max\: %3.03lf ms" \
+			GPRINT:dns1:MAX:" max\: %3.02lf ms\t\t" \
+			GPRINT:dns2:MAX:" max\: %3.02lf ms\t\t" \
+			GPRINT:dns3:MAX:" max\: %3.02lf ms\t\t" \
+			GPRINT:dns4:MAX:" max\: %3.02lf ms" \
 			COMMENT:"\l" \
 			COMMENT:"${PreSP}" \
-			GPRINT:dns1:AVERAGE:" avg\: %3.03lf ms\t\t" \
-			GPRINT:dns2:AVERAGE:" avg\: %3.03lf ms\t\t" \
-			GPRINT:dns3:AVERAGE:" avg\: %3.03lf ms\t" \
-			GPRINT:dns4:AVERAGE:" avg\: %3.03lf ms" \
+			GPRINT:dns1:AVERAGE:" avg\: %3.02lf ms\t\t" \
+			GPRINT:dns2:AVERAGE:" avg\: %3.02lf ms\t\t" \
+			GPRINT:dns3:AVERAGE:" avg\: %3.02lf ms\t\t" \
+			GPRINT:dns4:AVERAGE:" avg\: %3.02lf ms" \
 			COMMENT:"\l" \
 			COMMENT:"${PreSP}" \
-			GPRINT:dns1:LAST:"last\: %3.03lf ms\t\t" \
-			GPRINT:dns2:LAST:"last\: %3.03lf ms\t\t" \
-			GPRINT:dns3:LAST:"last\: %3.03lf ms\t" \
-			GPRINT:dns4:LAST:"last\: %3.03lf ms" \
+			GPRINT:dns1:LAST:"last\: %3.02lf ms\t\t" \
+			GPRINT:dns2:LAST:"last\: %3.02lf ms\t\t" \
+			GPRINT:dns3:LAST:"last\: %3.02lf ms\t\t" \
+			GPRINT:dns4:LAST:"last\: %3.02lf ms" \
 			COMMENT:"\l"
 	done
 }
