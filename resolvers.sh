@@ -34,7 +34,6 @@ poll() {
 }
 
 usage() {
-	echo "Invalid option for ${PROGNAME}"
 	echo "${PROG} (create|update|graph|debug) <host>"
 }
 
@@ -153,6 +152,41 @@ do_graph() {
 		    	;;
 		esac
 
+		PreSP="    "
+		PostSP="\t"
+		ldns1=${#dns1}
+		ldns2=${#dns2}
+		ldns3=${#dns3}
+		if [ ldns1 -le 20 ]
+		then
+			SP1="\t\t"
+		elif [ ldns1 -gt 20 ]
+		then
+			SP1="\t"
+		else
+			SP1=" "
+		fi
+
+		if [ ldns2 -le 20 ]
+		then
+			SP2="\t\t"
+		elif [ ldns2 -gt 20 ]
+		then
+			SP2="\t"
+		else
+			SP2=" "
+		fi
+
+		if [ ldns3 -le 20 ]
+		then
+			SP3="\t\t"
+		elif [ ldns3 -gt 20 ]
+		then
+			SP3="\t"
+		else
+			SP3=" "
+		fi
+		
 		rrdtool graph ${GRAPHNAME} \
 			-v "response time in ms" -w 700 -h 300  -t "${TITLE}" \
 			--upper-limit 1.1 --lower-limit 0 --alt-y-grid --units-length 2 \
@@ -164,31 +198,31 @@ do_graph() {
 			DEF:dns3=${RRDFILE}:dns3:AVERAGE \
 			DEF:dns4=${RRDFILE}:dns4:AVERAGE \
 			COMMENT:"\l" \
-			COMMENT:"    " \
-			LINE1:dns1\#44FF44:"${dns1:-adns1}\t" \
-			LINE1:dns2\#000ccc:"${dns2:-adns2}\t" \
-			LINE1:dns3\#ccc000:"${dns3:-adns3}\t" \
+			COMMENT:"${PreSP}" \
+			LINE1:dns1\#44FF44:"${dns1:-adns1}${SP1}" \
+			LINE1:dns2\#000ccc:"${dns2:-adns2}${SP2}" \
+			LINE1:dns3\#ccc000:"${dns3:-adns3}${SP3}" \
 			LINE1:dns4\#FF0000:"${dns4:-adns4}" \
 			COMMENT:"\l" \
-			COMMENT:"    " \
+			COMMENT:"${PreSP}" \
 			GPRINT:dns1:MIN:" min\: %3.03lf ms\t\t" \
 			GPRINT:dns2:MIN:" min\: %3.03lf ms\t\t" \
 			GPRINT:dns3:MIN:" min\: %3.03lf ms\t" \
 			GPRINT:dns4:MIN:" min\: %3.03lf ms" \
 			COMMENT:"\l" \
-			COMMENT:"    " \
+			COMMENT:"${PreSP}" \
 			GPRINT:dns1:MAX:" max\: %3.03lf ms\t\t" \
 			GPRINT:dns2:MAX:" max\: %3.03lf ms\t\t" \
 			GPRINT:dns3:MAX:" max\: %3.03lf ms\t" \
 			GPRINT:dns4:MAX:" max\: %3.03lf ms" \
 			COMMENT:"\l" \
-			COMMENT:"    " \
+			COMMENT:"${PreSP}" \
 			GPRINT:dns1:AVERAGE:" avg\: %3.03lf ms\t\t" \
 			GPRINT:dns2:AVERAGE:" avg\: %3.03lf ms\t\t" \
 			GPRINT:dns3:AVERAGE:" avg\: %3.03lf ms\t" \
 			GPRINT:dns4:AVERAGE:" avg\: %3.03lf ms" \
 			COMMENT:"\l" \
-			COMMENT:"    " \
+			COMMENT:"${PreSP}" \
 			GPRINT:dns1:LAST:"last\: %3.03lf ms\t\t" \
 			GPRINT:dns2:LAST:"last\: %3.03lf ms\t\t" \
 			GPRINT:dns3:LAST:"last\: %3.03lf ms\t" \
@@ -327,6 +361,7 @@ case $CMD in
 		;;
 
 	*)
+		echo "Invalid option for ${PROGNAME}"
 		usage
 		exit 1
 		;;
