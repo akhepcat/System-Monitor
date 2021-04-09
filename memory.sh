@@ -16,6 +16,26 @@ DATE=$(date)
 RRDFILE="${RRDLIB:-.}/${MYHOST}-mem.rrd"
 GRAPHBASE="${WEBROOT:-.}/${MYHOST}-mem.png"
 
+poll() {
+	DATA=$( gawk '
+		match($1,/^MemTotal:$/) { mt=$(NF-1)*1024 }; 
+		match($1,/^MemFree:$/) { mf=$(NF-1)*1024 }; 
+		match($1,/^SwapTotal:$/) { st=$(NF-1)*1024 };
+		match($1,/^SwapFree:$/) { sf=$(NF-1)*1024  };
+
+		END { 
+			 print mt ":" (mt - mf) ":" mf ":" st ":" (st - sf) ":" sf
+		};' /proc/meminfo )
+
+	totalmem=${DATA%%:*}; DATA=${DATA//$totalmem:}
+	usedmem=${DATA%%:*};  DATA=${DATA//$usedmem:}
+	freemem=${DATA%%:*};  DATA=${DATA//$freemem:}
+
+	totalswap=${DATA%%:*};  DATA=${DATA//$totalswap:}
+	usedswap=${DATA%%:*};  DATA=${DATA//$usedswap:}
+	freeswap=${DATA%%:*}
+}
+
 do_graph() {
 	if [ "${DONTRRD:-0}" = "1" ]
 	then
@@ -95,12 +115,11 @@ case $CMD in
 			echo "RRDFILE=${RRDFILE}"
 			echo "GRAPHBASE=${GRAPHBASE}"
 		fi
-		echo N=$(
-			grep -E '^(Mem|Buff|Cache)' /proc/meminfo | \
-			    gawk 'match($1,/^MemTotal:$/) { print $(NF-1)*1024 }; match($1,/^Buffers:$/) { print $(NF-1)*1024 }; match($1,/^Cached:$/) { print $(NF-1)*1024 };' | tr '\n' ':')$(
-		        grep 'Swap[TF]' /proc/meminfo | \
-                           sed  'N; {s/SwapTotal://; s/kB.*SwapFree://; s/kB//;}'| \
-                           gawk '{ print ($1 * 1024) ":" (($1 - $2) * 1024) ":" ($2 * 1024) }')
+
+		poll
+
+		echo N:${totalmem}:${usedmem}:${freemem}:${totalswap}:${usedswap}:${freeswap}
+
 		if [ "${DONTRRD:-0}" != "1" ]
 		then
 			echo "Datastore RRD is enabled"
@@ -149,13 +168,7 @@ case $CMD in
 			exit 1
 		fi
 
-		MEM=$( grep -E '^(Mem|Buff|Cache)' /proc/meminfo | \
-			    gawk 'match($1,/^MemTotal:$/) { printf $(NF-1)*1024 ":" }; 
-			    	  match($1,/^Buffers:$/) { printf $(NF-1)*1024 ":" }; 
-			    	  match($1,/^Cached:$/) { print $(NF-1)*1024 };' )
-		SWAP=$(  grep -E 'Swap[TF]' /proc/meminfo | \
-			    sed  'N; {s/SwapTotal://; s/kB.*SwapFree://; s/kB//;}'| \
-			    gawk '{ print ($1 * 1024) ":" (($1 - $2) * 1024) ":" ($2 * 1024) }')
+		poll
 
 		if [ -n "${INFLUXURL}" ]
 		then
@@ -170,13 +183,6 @@ case $CMD in
 			# yes, the newline is required for each point written
 			# we do not include the timestamp and let influx handle it as received.
 
-			totalmem=${MEM%%:*}
-			freemem=${MEM##*:}
-			usedmem=${MEM#*:}; usedmem=${usedmem##*:}
-
-			totalswap=${SWAP%%:*}
-			freeswap=${SWAP##*:}
-			usedswap=${SWAP#*:}; usedswap=${usedswap##*:}
 
 			status=$(curl -silent -i "${INFLUXURL}" --data-binary """
 			${PROG//.sh/},host=${MYHOST} totalmem=${totalmem}
@@ -195,7 +201,7 @@ case $CMD in
 		fi
 		if [ "${DONTRRD:-0}" != "1" ]
 		then
-			rrdtool update ${RRDFILE} N:${MEM}:${SWAP}
+			rrdtool update ${RRDFILE} N:${totalmem}:${usedmem}:${freemem}:${totalswap}:${usedswap}:${freeswap}
 		fi
 		;;
 	graph|graph-day)  do_graph day
