@@ -48,6 +48,12 @@ RRDFILE="${RRDLIB:-.}/${MYHOST}-${DRIVE}.rrd"
 GRAPHNAME="${WEBROOT:-.}/${MYHOST}-${DRIVE}.png"
 MOUNT="$(mount | grep -w ${LDRIVE} | awk '{print $3}')"
 [[ -z "${MOUNT}" ]] && MOUNT="$(mount | grep -w ${DRIVE} | awk '{print $3}')"
+DFDRIVE=$(df -k | grep -wE "[[:space:]]${MOUNT}" | awk '{print $1}')
+
+poll() {
+		DATA=$(gawk -v drive="${LDRIVE}" '{ if ($0 ~ drive"[ \t]") { print $6":"$10 }; }' /proc/diskstats )
+		SPACE=$(df -k | gawk -v drive="${DFDRIVE}" '{if ($0 ~ drive) {printf $2 ":" $3} }')
+}
 
 case ${CMD} in
 	(debug)
@@ -60,8 +66,10 @@ case ${CMD} in
 			echo "MOUNT=${MOUNT}"
 		fi
 
-		echo throughput=$(gawk -v drive="${LDRIVE}" '{ if ($0 ~ drive"[ \t]") { print $6":"$10 }; }' /proc/diskstats )
-		echo utilization=$(df -k | gawk -v drive="${DRIVE}" '{if ($0 ~ drive) {printf $2 ":" $3} }')
+		poll
+
+		echo throughput=${DATA}
+		echo utilization=${SPACE}
 
 		if [ "${DONTRRD:-0}" != "1" ]
 		then
@@ -107,8 +115,7 @@ case ${CMD} in
 			exit 1
 		fi
 
-		DATA=$(gawk -v drive="${LDRIVE}" '{ if ($0 ~ drive"[ \t]") { print $6":"$10 }; }' /proc/diskstats )
-		SPACE=$(df -k | gawk -v drive="${DRIVE}" '{if ($0 ~ drive) {printf $2 ":" $3} }')
+		poll
 
 		if [ -n "${INFLUXURL}" ]
 		then
