@@ -173,25 +173,25 @@ do_graph() {
 			COMMENT:"    " \
 			GPRINT:dns1:MIN:" min\: %3.03lf ms\t\t" \
 			GPRINT:dns2:MIN:" min\: %3.03lf ms\t\t" \
-			GPRINT:dns3:MIN:" min\: %3.03lf ms\t    " \
+			GPRINT:dns3:MIN:" min\: %3.03lf ms\t" \
 			GPRINT:dns4:MIN:" min\: %3.03lf ms" \
 			COMMENT:"\l" \
 			COMMENT:"    " \
 			GPRINT:dns1:MAX:" max\: %3.03lf ms\t\t" \
 			GPRINT:dns2:MAX:" max\: %3.03lf ms\t\t" \
-			GPRINT:dns3:MAX:" max\: %3.03lf ms\t    " \
+			GPRINT:dns3:MAX:" max\: %3.03lf ms\t" \
 			GPRINT:dns4:MAX:" max\: %3.03lf ms" \
 			COMMENT:"\l" \
 			COMMENT:"    " \
 			GPRINT:dns1:AVERAGE:" avg\: %3.03lf ms\t\t" \
 			GPRINT:dns2:AVERAGE:" avg\: %3.03lf ms\t\t" \
-			GPRINT:dns3:AVERAGE:" avg\: %3.03lf ms\t    " \
+			GPRINT:dns3:AVERAGE:" avg\: %3.03lf ms\t" \
 			GPRINT:dns4:AVERAGE:" avg\: %3.03lf ms" \
 			COMMENT:"\l" \
 			COMMENT:"    " \
 			GPRINT:dns1:LAST:"last\: %3.03lf ms\t\t" \
 			GPRINT:dns2:LAST:"last\: %3.03lf ms\t\t" \
-			GPRINT:dns3:LAST:"last\: %3.03lf ms\t    " \
+			GPRINT:dns3:LAST:"last\: %3.03lf ms\t" \
 			GPRINT:dns4:LAST:"last\: %3.03lf ms" \
 			COMMENT:"\l"
 	done
