@@ -20,11 +20,13 @@ poll() {
 	DATA=$( gawk '
 		match($1,/^MemTotal:$/) { mt=$(NF-1)*1024 }; 
 		match($1,/^MemFree:$/) { mf=$(NF-1)*1024 }; 
+		match($1,/^MemAvailable:$/) { ma=$(NF-1)*1024 }; 
 		match($1,/^SwapTotal:$/) { st=$(NF-1)*1024 };
 		match($1,/^SwapFree:$/) { sf=$(NF-1)*1024  };
 
-		END { 
-			 print mt ":" (mt - mf) ":" mf ":" st ":" (st - sf) ":" sf
+		END {
+		 	 if (ma > mf) { fm=ma; } else { fm=mf };
+			 print mt ":" (mt - fm) ":" fm ":" st ":" (st - sf) ":" sf
 		};' /proc/meminfo )
 
 	totalmem=${DATA%%:*}; DATA=${DATA//$totalmem:}
