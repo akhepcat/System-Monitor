@@ -157,30 +157,30 @@ do_graph() {
 		ldns1=${#dns1}
 		ldns2=${#dns2}
 		ldns3=${#dns3}
-		if [ ldns1 -le 20 ]
+		if [ $ldns1 -le 20 ]
 		then
 			SP1="\t\t"
-		elif [ ldns1 -gt 20 ]
+		elif [ $ldns1 -gt 20 ]
 		then
 			SP1="\t"
 		else
 			SP1=" "
 		fi
 
-		if [ ldns2 -le 20 ]
+		if [ $ldns2 -le 20 ]
 		then
 			SP2="\t\t"
-		elif [ ldns2 -gt 20 ]
+		elif [ $ldns2 -gt 20 ]
 		then
 			SP2="\t"
 		else
 			SP2=" "
 		fi
 
-		if [ ldns3 -le 20 ]
+		if [ $ldns3 -le 20 ]
 		then
 			SP3="\t\t"
-		elif [ ldns3 -gt 20 ]
+		elif [ $ldns3 -gt 20 ]
 		then
 			SP3="\t"
 		else
