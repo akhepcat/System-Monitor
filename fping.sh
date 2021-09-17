@@ -177,7 +177,6 @@ do_graph() {
 		--upper-limit 1.1 --lower-limit 0 --alt-y-grid --units-length 2 \
 	        --right-axis-label "fping trends" \
 	        --right-axis 0.02:0 --right-axis-format %1.0lf \
-	        --use-nan-for-all-missing-data \
 		-c ARROW\#000000  --end now \
 		${START:+--start $START}  ${XAXIS:+-x $XAXIS} \
 		DEF:pingmin=${RRDFILE}:pingmin:AVERAGE \

@@ -84,7 +84,6 @@ do_graph() {
 
 	rrdtool graph ${GRAPHNAME} \
 	        -v "${PROGNAME} Bytes" -w 700 -h 300  -t "${TITLE}" \
-	        --use-nan-for-all-missing-data \
 		--color ARROW\#000000  \
 		${START:+--end now} ${START:+--start $START}  ${XAXIS:+--x-grid $XAXIS} \
 		DEF:usedmem=${RRDFILE}:usedmem:AVERAGE \

@@ -182,7 +182,6 @@ do_graph() {
 		${SCALE} --alt-y-grid --units-length 2 \
 	        --right-axis-label "${PROGNAME} air pressure" \
 	        --right-axis 1:850 --right-axis-format %1.0lf \
-	        --use-nan-for-all-missing-data \
 		--color ARROW\#000000  ${START:+--end now} ${START:+--start $START}  ${XAXIS:+--x-grid $XAXIS} \
 		DEF:temps=${RRDFILE}:temps:LAST \
 		DEF:press=${RRDFILE}:press:LAST \
