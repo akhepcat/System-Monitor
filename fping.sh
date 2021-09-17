@@ -254,10 +254,10 @@ case $CMD in
                 if [ "${CMD}" == "force-create" -o ! -r ${RRDFILE} ];
                 then
 		rrdtool create ${RRDFILE} -s 60 \
-		DS:pingmin:GAUGE:180:0:100 \
-		DS:pingmax:GAUGE:180:0:100 \
-		DS:pktloss:GAUGE:180:0:100 \
-		DS:jitter:GAUGE:180:0:100 \
+		DS:pingmin:GAUGE:180:0:300 \
+		DS:pingmax:GAUGE:180:0:300 \
+		DS:pktloss:GAUGE:180:0:300 \
+		DS:jitter:GAUGE:180:0:300 \
 		RRA:AVERAGE:0.5:1:1440 \
 		RRA:MIN:0.5:1:1440 \
 		RRA:MAX:0.5:1:1440 \
