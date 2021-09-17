@@ -23,9 +23,9 @@ GRAPHBASE="${WEBROOT:-.}/response-"
 CMD=$1
 IP=$2
 
-IDX="${WEBROOT:-.}/response-${IP}.html"
-RRDFILE="${RRDBASE}${IP}.rrd"
-GRAPHNAME="${GRAPHBASE}${IP}.png"
+IDX="${WEBROOT:-.}/response-${IP//ipv6:/}.html"
+RRDFILE="${RRDBASE}${IP//ipv6:/}.rrd"
+GRAPHNAME="${GRAPHBASE}${IP//ipv6:/}.png"
 
 STATS=""
 
@@ -43,6 +43,16 @@ then
 		USE_FPING=0
 fi
 
+if [ $USE_FPING -eq 1 ]
+then
+	if [ -n "$(which fping6 2>&1 | grep -v which:)" ]
+	then
+		FPING6="6"
+	else
+		FPING6=" --ipv6"
+	fi
+fi
+
 # Good
 #      PING OK|xmt=3 rcv=3 loss=0 min=1.05 avg=1.16 max=1.37
 # Bad
@@ -52,6 +62,13 @@ fi
 # 1 ping every 1/5 sec, wait max a double-sat hop for response
 poll() {
 	MYIP=$1
+	
+	if [ -n "${MYIP}" -a -z "${MYIP##*ipv6:*}" ]
+	then
+		# forced ipv6
+		MYIP=${MYIP//ipv6:/}
+		PINGARG=${FPING6}
+	fi
 
 	if [ ${USE_FPING} -eq 1 ]
 	then
@@ -63,12 +80,12 @@ poll() {
 	       		count=25
 	       	fi
        	
-		STATS=$(fping -p 200 -t 1300 -qc ${count} ${MYIP} 2>&1 | \
+		STATS=$(fping${PINGARG} -p 200 -t 1300 -qc ${count} ${MYIP} 2>&1 | \
 		  sed 's/.*loss = \([0-9]*\)\/\([0-9]*\)\/\([0-9]*\)%/PING OK|xmt=\1 rcv=\2 loss=\3 #/;
 		     s/#.*= \([0-9]*.[0-9]*\)\/\([0-9].*\)\/\([0-9].*\)/min=\1 avg=\2 max=\3/;
 		     s/.*|\(.*loss=100\).*#/PING BAD|\1 min=0 avg=0 max=0/;' )
 	else
-		STATS=$(ping -W 2 -i 0.2 -qc 3 ${MYIP} 2>&1 | \
+		STATS=$(ping${PINGARG} -W 2 -i 0.2 -qc 3 ${MYIP} 2>&1 | \
 		  sed 's/.*statistics.*$//; s/.*data\.$//; /^$/d; {N; s/\n/ /; }; 
 		       s/\([0-9]*\) packets transmitted, \([0-9]\) received, \([0-9]\)%.*mdev = \([0-9\.]*\)\/\([0-9\.]*\)\/\([0-9\.]*\)\/\([0-9\.]*\).*/min=\4 avg=\5 max=\6 xmt=\1 rcv=\2 loss=\3/;
 		       s/\([0-9]\{1,5\}\) packets trans.*100% packet.*/PING BAD|xmt=\1 rcv=0 loss=100 min=0 avg=0 max=0/;' )
@@ -102,7 +119,7 @@ EOF
 ### BODY
 cat >>${IDX} <<EOF
 <body>
-<h2>fping response stats: ${IP}</h2>
+<h2>fping response stats: ${IP//ipv6:/}</h2>
 <p>
 	I provide multiple statistics showing the general response health of the hosts below.<br />
 	All statistics are gathered once a minute and the charts are redrawn every 5 minutes.<br />
@@ -115,18 +132,18 @@ cat >>${IDX} <<EOF
 
   <tr>
     <td>&nbsp;</td>
-    <td><img src="${PROGNAME}-${IP}.png" /></td>
+    <td><img src="${PROGNAME}-${IP//ipv6:/}.png" /></td>
     <td>&nbsp;</td>
-    <td><img src="${PROGNAME}-${IP}-week.png" /></td>
+    <td><img src="${PROGNAME}-${IP//ipv6:/}-week.png" /></td>
   </tr>
 
   <tr><th colspan='2'>Monthly</th><th colspan='2'>Yearly</th></tr>
 
   <tr>
     <td>&nbsp;</td>
-    <td><img src="${PROGNAME}-${IP}-month.png" /></td>
+    <td><img src="${PROGNAME}-${IP//ipv6:/}-month.png" /></td>
     <td>&nbsp;</td>
-    <td><img src="${PROGNAME}-${IP}-year.png" /></td>
+    <td><img src="${PROGNAME}-${IP//ipv6:/}-year.png" /></td>
   </tr>
 </table>
 <p /><hr />
@@ -149,23 +166,23 @@ do_graph() {
 
 	case $1 in
 		day)
-			TITLE="${MYHOST} last 24 hours ping stats for ${IP} - ${DATE}"
+			TITLE="${MYHOST} last 24 hours ping stats for ${IP//ipv6:/} - ${DATE}"
 			START=""
 			XAXIS="MINUTE:30:MINUTE:30:HOUR:1:0:%H"
 		;;
 		week)
 			GRAPHNAME="${GRAPHNAME//.png/-week.png}"
-			TITLE="${MYHOST} last 24 hours ping stats for ${IP} - ${DATE}"
+			TITLE="${MYHOST} last 24 hours ping stats for ${IP//ipv6:/} - ${DATE}"
 			START="end-$LASTWEEK"
 		;;
 		month)
 	    		GRAPHNAME="${GRAPHNAME//.png/-month.png}"
-			TITLE="${MYHOST} last 24 hours ping stats for ${IP} - ${DATE}"
+			TITLE="${MYHOST} last 24 hours ping stats for ${IP//ipv6:/} - ${DATE}"
 	    		START="end-$LASTMONTH"
 	    	;;
 		year)
 	    		GRAPHNAME="${GRAPHNAME//.png/-year.png}"
-			TITLE="${MYHOST} last 24 hours ping stats for ${IP} - ${DATE}"
+			TITLE="${MYHOST} last 24 hours ping stats for ${IP//ipv6:/} - ${DATE}"
 	    		START="end-$LASTYEAR"
 	    	;;
 	    	*) 	echo "broken graph call"
