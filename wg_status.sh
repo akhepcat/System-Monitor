@@ -69,20 +69,22 @@ do_graph() {
 
 #	        --right-axis-label "user count" \
 #	        --right-axis 0.02:0 --right-axis-format %1.0lf \
-#		--upper-limit 1.1 
+#		--upper-limit 1.1 --lower-limit 0
+
 	poll	# to get an updated MAXU
 
 	rrdtool graph ${GRAPHNAME} \
 	        -v "user count" -w 700 -h 300  -t "${TITLE}" \
-		--lower-limit 0 --alt-y-grid --units-length 2 \
+		--alt-y-grid --units-length 2 \
 		--alt-autoscale-min --upper-limit $MAXU \
 		-c ARROW\#000000  --end now \
 		${START:+--start $START}  ${XAXIS:+-x $XAXIS} \
 		DEF:online=${RRDFILE}:online:AVERAGE \
 		DEF:away=${RRDFILE}:away:AVERAGE \
 		DEF:offline=${RRDFILE}:offline:AVERAGE \
+		CDEF:noff=0,offline,- \
 		COMMENT:"${SP}" \
-		LINE2:online\#${ONLC}:"online users${SP}" \
+		AREA:online\#${ONLC}:"online users${SP}" \
 		GPRINT:online:LAST:"last\: %3.0lf${SP}" \
 		GPRINT:online:MIN:" min\: %3.0lf${SP}" \
 		GPRINT:online:AVERAGE:" avg\: %3.0lf${SP}" \
@@ -96,11 +98,11 @@ do_graph() {
 		GPRINT:away:MAX:" max\: %3.0lf${SP}" \
 		COMMENT:"\l" \
 		COMMENT:"${SP}" \
-		LINE1:offline\#${OFFC}:"offline users${SP}" \
-		GPRINT:offline:LAST:"last\: %3.0lf${SP}" \
-		GPRINT:offline:MIN:" min\: %3.0lf${SP}" \
-		GPRINT:offline:MAX:" max\: %3.0lf${SP}" \
-		GPRINT:offline:AVERAGE:" avg\: %3.0lf${SP}" \
+		AREA:noff\#${OFFC}:"offline users${SP}" \
+		GPRINT:noff:LAST:"last\: %3.0lf${SP}" \
+		GPRINT:noff:MIN:" min\: %3.0lf${SP}" \
+		GPRINT:noff:MAX:" max\: %3.0lf${SP}" \
+		GPRINT:noff:AVERAGE:" avg\: %3.0lf${SP}" \
 		COMMENT:"\l"
     #DONTRRD
     fi
