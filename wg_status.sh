@@ -38,7 +38,7 @@ do_graph() {
     if [ "${DONTRRD:-0}" != "1" ]
     then
 	#defaults, overridden where needed
-	SP='\t\t'	# nominal spacing
+	SP='\t'	# nominal spacing
 	XAXIS=""	# only the daily graph gets custom x-axis markers
 
 	case $1 in
@@ -82,29 +82,25 @@ do_graph() {
 		DEF:away=${RRDFILE}:away:AVERAGE \
 		DEF:offline=${RRDFILE}:offline:AVERAGE \
 		COMMENT:"${SP}" \
-		LINE2:online\#${ONLC}:"online users\t    " \
-		LINE2:away\#${AWAC}:"away users\t    " \
-		LINE1:offline\#${OFFC}:" offline users\t    " \
+		LINE2:online\#${ONLC}:"online users${SP}" \
+		GPRINT:online:LAST:"last\: %3.0lf${SP}" \
+		GPRINT:online:MIN:" min\: %3.0lf${SP}" \
+		GPRINT:online:AVERAGE:" avg\: %3.0lf${SP}" \
+		GPRINT:online:MAX:" max\: %3.0lf${SP}" \
 		COMMENT:"\l" \
 		COMMENT:"${SP}" \
-		GPRINT:online:MIN:" min\: %3.0lf\t\t    " \
-		GPRINT:away:MIN:" min\: %3.0lf\t\t    " \
-		GPRINT:offline:MIN:" min\: %3.0lf\t\t    " \
+		LINE2:away\#${AWAC}:"away users${SP}" \
+		GPRINT:away:LAST:"last\: %3.0lf${SP}" \
+		GPRINT:away:MIN:" min\: %3.0lf${SP}" \
+		GPRINT:away:AVERAGE:" avg\: %3.0lf${SP}" \
+		GPRINT:away:MAX:" max\: %3.0lf${SP}" \
 		COMMENT:"\l" \
 		COMMENT:"${SP}" \
-		GPRINT:online:MAX:" max\: %3.0lf\t\t    " \
-		GPRINT:away:MAX:" max\: %3.0lf\t\t    " \
-		GPRINT:offline:MAX:" max\: %3.0lf\t\t    " \
-		COMMENT:"\l" \
-		COMMENT:"${SP}" \
-		GPRINT:online:AVERAGE:" avg\: %3.0lf\t\t    " \
-		GPRINT:away:AVERAGE:" avg\: %3.0lf\t\t    " \
-		GPRINT:offline:AVERAGE:" avg\: %3.0lf\t\t    " \
-		COMMENT:"\l" \
-		COMMENT:"${SP}" \
-		GPRINT:online:LAST:"last\: %3.0lf\t\t    " \
-		GPRINT:away:LAST:"last\: %3.0lf\t\t    " \
-		GPRINT:offline:LAST:"last\: %3.0lf\t    " \
+		LINE1:offline\#${OFFC}:"offline users${SP}" \
+		GPRINT:offline:LAST:"last\: %3.0lf${SP}" \
+		GPRINT:offline:MIN:" min\: %3.0lf${SP}" \
+		GPRINT:offline:MAX:" max\: %3.0lf${SP}" \
+		GPRINT:offline:AVERAGE:" avg\: %3.0lf${SP}" \
 		COMMENT:"\l"
     #DONTRRD
     fi
