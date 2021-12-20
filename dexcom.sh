@@ -98,7 +98,7 @@ dex_update() {
 	get_data
 
 	Value=""
-	if [ -z "${result}" -o -n "${result##*Trend*Value*}" ]
+	if [ -z "${result}" -o -n "${result##*Value*}" ]
 	then
 		# looks invalid, so refresh the cache
 		sess_update
@@ -115,16 +115,17 @@ dex_update() {
 		get_data
 	fi
 	# if we get here, the session is valid, whether new or old
-	# so we parse the JSON data... horrible code follows:
+	# so we parse the JSON data... horrible, but better code follows:
 
-	WT=${result##*,}; WT=${WT##*\(}; WT=${WT%%\)*}
-	DT=${result%%,*}; DT=${DT##*\(}; DT=${DT%%\)*}
-	result="\"ST${result##*ST}"
-	result=${result%%,\"WT*}
-	ST=${result%%,\"Tren*}; ST=${ST##*\(}; ST=${ST%%\)*}
+	WT=${result##*WT}; WT=${WT#*\(}; WT=${WT%%\)*}
+	DT=${result##*DT}; DT=${DT#*\(}; DT=${DT%%\)*}
+	ST=${result##*ST}; ST=${ST#*\(}; ST=${ST%%\)*}
+
 	Value=${result##*,\"Value\":}
-	result=${result%%,\"Value*}
+	Value=${Value%%:*}
+
 	Trend=${result##*Trend\":}
+	Trend=${Trend%%:*}
 
 	# work around bad json data
 	Value=${Value//[^0-9]/}
