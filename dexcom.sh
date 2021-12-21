@@ -30,10 +30,13 @@ IDX="${WEBROOT:-.}/${PROGNAME}.html"
 CMD="$1"
 DATE=$(date)
 
+declare -a Trends
+declare -A rTrends
 # We invert the trends, since that data looks better on the graphs
 #          0         1           2             3            4           5            6           7             8              9
 # Orig=( 'None' 'DoubleUp'   'SingleUp'   'FortyFiveUp'   'Flat'  'FortyFiveDown' 'SingleDown' 'DoubleDown' 'NotComputable' 'OutOfRange' )
 Trends=( 'None' 'DoubleDown' 'SingleDown' 'FortyFiveDown' 'Flat'  'FortyFiveUp'   'SingleUp'   'DoubleUp'   'NotComputable' 'OutOfRange' )
+rTrends=( [None]=0 [DoubleDown]=1 [SingleDown]=2 [FortyFiveDown]=3 [Flat]=4  [FortyFiveUp]=5   [SingleUp]=6   [DoubleUp]=7   [NotComputable]=8 [OutOfRange]=9 )
 
 useragent='Dexcom Share/3.0.2.11 CFNetwork/672.0.2 Darwin/14.0.0'
 
@@ -122,16 +125,24 @@ dex_update() {
 	ST=${result##*ST}; ST=${ST#*\(}; ST=${ST%%\)*}
 
 	Value=${result##*,\"Value\":}
-	Value=${Value%%:*}
+	Value=${Value%%:*}; Value=${Value%%\}*}; Value=${Value%%,*}
 
 	Trend=${result##*Trend\":}
-	Trend=${Trend%%:*}
+	Trend=${Trend%%:*}; Trend=${Trend%%\}*}; Trend=${Trend%%,*}
+	Trend=${Trend//\"/}
+
+	if [ -z "${Trend//[^0-9]/}" ]
+	then
+		Trend=${rTrends[$Trend]}	# replace the text with the number
+	fi
 
 	# work around bad json data
 	Value=${Value//[^0-9]/}
 	Value=${Value:-U}
-	Trend=${Trend//[^0-9]/}
-	Trend=${Trend:-9}
+
+# for now
+#	Trend=${Trend//[^0-9]/}
+#	Trend=${Trend:-9}
 
 	if [ ${Trend:-0} -lt 8 -a ${Trend:-0} -gt 0 ]
 	then
