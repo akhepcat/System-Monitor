@@ -127,27 +127,35 @@ dex_update() {
 	Value=${result##*,\"Value\":}
 	Value=${Value%%:*}; Value=${Value%%\}*}; Value=${Value%%,*}
 
+	# work around bad json data
+	Value=${Value//[^0-9]/}
+	Value=${Value:-U}
+
+
 	Trend=${result##*Trend\":}
 	Trend=${Trend%%:*}; Trend=${Trend%%\}*}; Trend=${Trend%%,*}
 	Trend=${Trend//\"/}
 
 	if [ -z "${Trend//[^0-9]/}" ]
 	then
+		#it's a name, convert straight to our preferred numbers
+		
 		Trend=${rTrends[$Trend]}	# replace the text with the number
-	fi
+	else
+		# it's a number, so we need to fix it up
 
-	# work around bad json data
-	Value=${Value//[^0-9]/}
-	Value=${Value:-U}
 
-# for now
-#	Trend=${Trend//[^0-9]/}
-#	Trend=${Trend:-9}
+		# work around bad json data
+		Trend=${Trend//[^0-9]/}
 
-	if [ ${Trend:-0} -lt 8 -a ${Trend:-0} -gt 0 ]
-	then
-		# invert for better visualization of the trends, leaving 0 and 8-9 alone
-		Trend=$(( 8 - Trend ))
+		if [ -n "${Trend}" -a \( ${Trend:-0} -lt 8 -a ${Trend:-0} -gt 0 \) ]
+		then
+			# invert for better visualization of the trends, leaving 0 and 8-9 alone
+			Trend=$(( 8 - Trend ))
+		fi
+
+		Trend=${Trend:-U}
+
 	fi
 
 	# the formula for converting:
