@@ -32,6 +32,13 @@ A loosely bound collection of scripts that monitor a system or network.
 
 Read the source, Luke! and the config file.  It's pretty simple!
 
+tl;dr -  assuming you're running as root
+1) copy the sysmon.conf  into  /etc/default
+2) determine which modules (scripts) you want to run by default, and edit that line in the config file
+3) run the 'do-updates' script in 'debug' mode, verify that polls are working, correct all errors
+4) run the 'do-updates' in 'create' mode, to generate all the required databases
+5) call the 'do-updates' script from cron every minute, and it'll do the rest
+
 # Bugs
 
 It's probably got some.   
