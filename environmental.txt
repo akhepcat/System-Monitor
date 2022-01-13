@@ -1,0 +1,6 @@
+use sysmon
+SELECT * INTO environmental from bmp180 GROUP BY host
+SELECT * INTO environmental from scd4x GROUP BY host
+DROP MEASUREMENT bmp180
+DROP MEASUREMENT scd4x
+

@@ -289,7 +289,7 @@ case $CMD in
 			# we assume the URL already looks like http(s?)://host.name/write?db=foo&u=bar&p=baz
 			# yes, the newline is required for each point written
 			# we do not include the timestamp and let influx handle it as received.
-			status=$(curl -silent -i "${INFLUXURL}" --data-binary "${PROG//.sh/},host=${MYHOST} temp=${temps}
+			status=$(curl -silent -i "${INFLUXURL}" --data-binary "environmental,host=${MYHOST} temp=${temps}
 			${PROG//.sh/},host=${MYHOST} press=${press}")
 
 			if [ -n "${status}" -a -n "${status##*204 No Content*}" ]
