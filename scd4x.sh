@@ -27,8 +27,7 @@ PCOL=44FF44
 TCOL=000ccc
 
 poll() {
-	# STATS=$( $SCRIPTHOME/scd4x.py | sed 's/^.*:\([0-9.]\+\),\([0-9.]\+\),\([0-9.]\+\)/OK temp=\1 humid=\2 co2ppm=\3/;')
-	STATS=$(sed 's/^.*: \([0-9.]\+\),\([0-9.]\+\),\([0-9.]\+\)/OK temp=\1 humid=\2 co2ppm=\3/;' scd4x.log)
+	STATS=$( $SCRIPTHOME/scd4x-i2c.py | sed 's/^.*: \([0-9.]\+\),\([0-9.]\+\),\([0-9.]\+\)/OK temp=\1 humid=\2 co2ppm=\3/;')
 	if [ -n "${STATS##*OK*}" ]
 	then
 		STATS="BAD temp=U humid=U co2ppm=U"
