@@ -1,6 +1,23 @@
-use sysmon
-SELECT * INTO environmental from bmp180 GROUP BY host
-SELECT * INTO environmental from scd4x GROUP BY host
-DROP MEASUREMENT bmp180
-DROP MEASUREMENT scd4x
 
+Apologies, but I've migrated the data measurements from the unique
+datasources into a converged datasource so that it's easier to switch
+between sensors and their available data without changing the upstream
+grafana graph definitions.
+
+1) stop all poller systems from pushing sensor data (i.e., comment them out from /etc/default/sysmon )
+
+2) as your 'influxdb' user,  open 'influxdb'  and run the following commands,
+   assuming you're using the same database name as I am:
+
+	use sysmon
+	SELECT * INTO environmental from bmp180 GROUP BY host
+	SELECT * INTO environmental from scd4x GROUP BY host
+	DROP MEASUREMENT bmp180
+	DROP MEASUREMENT scd4x
+
+3) start all poller systems' sensor modules
+
+4) make one last change to your grafana graph configs
+5) there is no number 5
+6) never worry about changing between sensor types, or adding new sensors, because they'll
+   all use the same measurement table. 
