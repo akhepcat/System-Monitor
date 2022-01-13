@@ -290,7 +290,7 @@ case $CMD in
 			# yes, the newline is required for each point written
 			# we do not include the timestamp and let influx handle it as received.
 			status=$(curl -silent -i "${INFLUXURL}" --data-binary "environmental,host=${MYHOST} temp=${temps}
-			${PROG//.sh/},host=${MYHOST} press=${press}")
+			environmental,host=${MYHOST} press=${press}")
 
 			if [ -n "${status}" -a -n "${status##*204 No Content*}" ]
 			then
