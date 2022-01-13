@@ -17,7 +17,9 @@ A loosely bound collection of scripts that monitor a system or network.
 * load.sh: displays the system CPU utilization  
 * sitestats.sh: internal script for rebuilding the web indices  
 * dexcom.sh:  Monitors your Dexcom G4/G5/G6 continuous glucose monitor data
-* bmp180.sh:  Monitors the temperature and humidity on a Raspberry Pi using a BMP180 or compatible sensor
+* bmp180.sh:  Monitors the temperature and air pressure on a Raspberry Pi using a BMP180 or compatible sensor
+* scd4x.sh:   Monitors the temperature, humidity, and CO2 levels on a Raspberry Pi using an SCD40/SCD41 sensor (adafruit!)
+* scd4x-i2c.py: Polls data from the SCD4x sensor over i2c - use "pip3 install adafruit-circuitpython-scd4x" for dependencies
 * resolvers.sh: Monitors the response time for DNS resolvers
 * page_load_time.pl:  called from webspeed.sh, used to display the total time to download an entire page with all dependancies  
 * sysmon.conf:  placed in /etc/default, defines/overrides the script parameters  
