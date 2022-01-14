@@ -219,7 +219,7 @@ reindex() {
 
 do_updates()
 {
-	for i in ${PROGS}; 	# run everything but fping in parallel
+	for i in ${PROGS};
 	do
 		if [ -z "${i##*fping*}" ]
 		then
@@ -228,10 +228,16 @@ do_updates()
 				${i} update ${IP} >/dev/null 2>&1 
 			done
 		else
-			# Do it nicely, tho
-			ionice nice ${i} update >/dev/null 2>&1 &
-			# sleep a tick between them
-			sleep 1
+			if [ ${PARALLEL:-0} -eq 1 ]
+			then
+				# run all other scripts nicely in parallel
+				ionice nice ${i} update >/dev/null 2>&1 &
+				# sleep a tick between them
+				sleep 1
+			else
+				# nicely serialized, otherwise
+				ionice nice ${i} update >/dev/null 2>&1
+			fi
 		fi
 	done
 }
