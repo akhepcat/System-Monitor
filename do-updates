@@ -219,23 +219,26 @@ reindex() {
 
 do_updates()
 {
-	for i in ${PROGS}; 
+	for i in ${PROGS}; 	# run everything but fping in parallel
 	do
 		if [ -z "${i##*fping*}" ]
 		then
 			for IP in ${PINGS}
 			do
-				${i} update ${IP} >/dev/null 2>&1
+				${i} update ${IP} >/dev/null 2>&1 
 			done
 		else
-			${i} update >/dev/null 2>&1
+			# Do it nicely, tho
+			ionice nice ${i} update >/dev/null 2>&1 &
+			# sleep a tick between them
+			sleep 1
 		fi
 	done
 }
 
 do_debugs()
 {
-	for i in ${PROGS}; 
+	for i in ${PROGS}; 	# run everything serially for debugging
 	do
 		if [ -z "${i##*fping*}" ]
 		then
