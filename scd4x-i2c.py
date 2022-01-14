@@ -14,16 +14,29 @@ import adafruit_scd4x
 i2c = board.I2C()
 scd4x = adafruit_scd4x.SCD4X(i2c)
 scd4x.altitude=220	# integer meters
+scd4x.temperature_offset = 7	# float celcius
+# scd4x.self_calibration_enabled = False	# for CO2 calibrations, refer to manual
+scd4x.persist_settings()
 
 scd4x.start_periodic_measurement()
+loop = 0
+ntemp = 0
+otemp = 0
 
 # Sleep until ready
 while True:
     if scd4x.data_ready:
-        break
+        loop = loop + 1
+
+        scd4x._read_data()
+        ntemp = scd4x.temperature
+
+        # Discard all but the lowest reported value over
+        if ( ntemp < otemp or otemp == 0) :
+            otemp = ntemp
+
+        if loop >= 6:
+            break
     time.sleep(1)
 
-# Convert from celcius
-ftemp = (scd4x.temperature * 9 / 5) + 32
-
-print("T/H/C: {:0.1f},{:0.1f},{:d}".format(ftemp, scd4x.relative_humidity, scd4x.CO2))
+print("T/H/C: {:0.1f},{:0.1f},{:d}".format( ((otemp / 5 * 9)+32), scd4x.relative_humidity, scd4x.CO2))
