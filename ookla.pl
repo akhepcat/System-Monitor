@@ -24,7 +24,6 @@ while(<CONF>) {
 }
 close(CONF);
 my $cmd=$conf{"OOKLACMD"};
-#my $cmd="cat /home/leif/st.log";
 
 open (CSV, "$cmd|") || die "can't execute speedtest ($cmd) for data import";
 while(<CSV>) {
