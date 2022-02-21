@@ -82,7 +82,7 @@ if (length($conf{"INFLUXURL"})) {
 
 	        print "DBG: result is " . $res->{'success'} . "\n" if $DEBUG;
 		if ($res->{'success'} eq 1) {
-			print "update successful\n";
+			print "update successful\n" if $DEBUG;
 		} else {
 			print "error updating influxdb!\n";
 		}
