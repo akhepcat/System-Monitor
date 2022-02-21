@@ -7,6 +7,7 @@ my $sysconf="/etc/default/sysmon.conf";
 my $count;
 my $ver;
 my $res;
+my $DEBUG=0;
 
 my $ua  = HTTP::Tiny->new( 'verify_SSL' => '1' );
 my %conf;
@@ -19,16 +20,20 @@ while(<CONF>) {
         my $var=$1; $_=$2;
         s/\s+#.*//; s/"//; # remove comments and floating quotes
         $conf{"$var"}=$_;  # set the variables
+        print "DBG: setting var ($var = $_))\n" if $DEBUG;
     }            
 
 }
 close(CONF);
 my $cmd=$conf{"OOKLACMD"};
 
+print "DBG: piping from cmd: ($cmd)\n" if $DEBUG;
+
 open (CSV, "$cmd|") || die "can't execute speedtest ($cmd) for data import";
 while(<CSV>) {
 	chomp;
 	
+	print "DBG: speedtest results ($_)\n" if $DEBUG;
 	s/^"//; s/"$//;	#remove leading and trailing quotes, we don't need 'em
 	s|N/A|0|g;
 	
@@ -44,6 +49,7 @@ close(CSV);
 $count=scalar(@down);
 
 if (length($conf{"INFLUXURL"})) {
+        print "DBG: pinging influxdb\n" if $DEBUG;
 	my $purl = $conf{"INFLUXURL"};
 	$purl =~ s/write.*//;
 	$res = $ua->request(
@@ -56,29 +62,35 @@ if (length($conf{"INFLUXURL"})) {
 	    },
 	);
 	$ver=$res->{'headers'}->{'x-influxdb-version'};
-}
 
+	if (length($conf{"INFLUXURL"}) && length($ver)) {
+	        print "DBG: ok: setting up call to influxdb\n" if $DEBUG;
 
-if (length($conf{"INFLUXURL"}) && length($ver)) {
-	my $content="speedtest,host=".$conf{"SERVERNAME"}." download=". ($data[5] * 8) . "\nspeedtest,host=".$conf{"SERVERNAME"}." upload=". ($data[6] * 8) . "\nspeedtest,host=".$conf{"SERVERNAME"}." jitter=". $data[3] . "\nspeedtest,host=".$conf{"SERVERNAME"}." loss=". $data[4] . "\nspeedtest,host=".$conf{"SERVERNAME"}." latency=". $data[2];
-	$res = $ua->request(
-	    'POST' => $conf{"INFLUXURL"} ,
-	    {
-	        headers => {
-	            'Content-Type'   => 'application/x-www-form-urlencoded',
-	            'Accept'         => '*/*',
-	            'User-Agent'     => 'pcurl/1.0',
-	            'Content-Length' => length($content)
-	        },
-		content => $content
-	    },
-	);
+		my $content="speedtest,host=".$conf{"SERVERNAME"}." download=". ($data[5] * 8) . "\nspeedtest,host=".$conf{"SERVERNAME"}." upload=". ($data[6] * 8) . "\nspeedtest,host=".$conf{"SERVERNAME"}." jitter=". $data[3] . "\nspeedtest,host=".$conf{"SERVERNAME"}." loss=". $data[4] . "\nspeedtest,host=".$conf{"SERVERNAME"}." latency=". $data[2];
+		$res = $ua->request(
+		    'POST' => $conf{"INFLUXURL"} ,
+		    {
+		        headers => {
+		            'Content-Type'   => 'application/x-www-form-urlencoded',
+		            'Accept'         => '*/*',
+		            'User-Agent'     => 'pcurl/1.0',
+		            'Content-Length' => length($content)
+		        },
+			content => $content
+		    },
+		);
 
-	if ($res->{'success'} eq 1) {
-		print "update successful\n";
+	        print "DBG: result is " . $res->{'success'} . "\n" if $DEBUG;
+		if ($res->{'success'} eq 1) {
+			print "update successful\n";
+		} else {
+			print "error updating influxdb!\n";
+		}
 	} else {
-		print "error updating influxdb!\n";
+		print "influxdb not available\n";
 	}
+
 } else {
-	print "influxdb not available\n";
+	print "influxdb not configured\n";
 }
+
