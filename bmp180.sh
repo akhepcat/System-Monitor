@@ -26,30 +26,10 @@ STATS=""
 PCOL=44FF44
 TCOL=000ccc
 
-for iio in /sys/bus/iio/devices/*
-do
-	for sub in $(find ${iio}/ -iname name)
-	do
-		if [ "$(cat ${sub})" = "bmp180" ]
-		then
-			BMP=${sub%name}
-		fi
-	done
-done
-
-
 poll() {
-	if [ -n "${BMP}" ]
+	STATS=$( $SCRIPTHOME/bmp180-i2c.py | sed 's/^.*: \([0-9.]\+\),\([0-9.]\+\)/OK temp=\1 pres=\2/;')
+	if [ -n "${STATS##*OK*}" ]
 	then
-		# {Traw} is Temperature_in_Centigrade, so convert here
-		# {Praw} is Pressure_in_Millibars * 10, so fix-up here
-		#
-		Traw=$(cat ${BMP}/in_temp_input)
-		Praw=$(cat ${BMP}/in_pressure_input)
-		TF=$( echo "scale=2; (($Traw/1000) * 9/5) + 32" | bc)
-		PM=$( echo "scale=2; ($Praw * 10)/1" | bc)
-		STATS="OK temp=${TF} pres=${PM}"
-	else
 		STATS="BAD temp=U pres=U"
 	fi
 }
@@ -87,7 +67,7 @@ cat >>${IDX} <<EOF
 <body>
 <h2>Temperature stats: ${MYHOST}</h2>
 <p>
-	I provide multiple statistics showing the temperature and air pressure from the BMP180 below.<br />
+	I provide multiple statistics showing the temperature and pressure from the BMP180 sensor below.<br />
 	All statistics are gathered once a minute and the charts are redrawn every 5 minutes.<br />
 	Additionally, this page is automatically reloaded every 5 minutes.
 	<br />Index page last generated on ${DATE}<br />
@@ -168,6 +148,14 @@ do_graph() {
 		echo "graphbase is $GRAPHBASE"
 		exit 1
 	fi
+
+	# the Lowest CO2 reading is: 400 
+	# the Average background CO2 is: 950
+	# the Highest CO2 reading is: 2000
+
+	# So to scale the data, we subtract 400 from the current value,
+	# but change the range of the right axis to start at 400, which provides
+	# a 1600ppm range...
 
 	# the Lowest recorded pressure was: 870 hpa(mbar)
 	# the Average Mean Sea-Level pressure  is 1013.25 hPa(mbar)
@@ -271,6 +259,7 @@ case $CMD in
 		temps=${STATS##*temp=};  temps=${temps%% *}
 		press=${STATS##*pres=};  press=${press%% *}
 
+
 		if [ "${DONTRRD:-0}" = "1" -a -z "${INFLUXURL}" ]
 		then
 			echo "${PROG}:FATAL: No datastore defined"
@@ -300,7 +289,7 @@ case $CMD in
 		fi
 		if [ "${DONTRRD:-0}" != "1" ]
 		then
-			rrdtool update ${RRDFILE} N:${temps}:${press}
+			rrdtool update ${RRDFILE} N:${temps}:${humid}:${CO2}
 		fi
 		;;
 
