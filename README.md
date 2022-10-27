@@ -13,6 +13,7 @@ A loosely bound collection of scripts that monitor a system or network.
 * webpage.sh: network latency to webservers listed in do-updates  
 * uptime.sh: displays the system uptime  
 * speedtest.sh: uses the 'Better(er)SpeedTest' script to provide the best possible network speedtest information- get it from its repo: https://github.com/akhepcat/BettererSpeedTest  
+* ookla.pl:  uses the ookla official cli command.  MaxMind GeoIP issues may restrict what servers you can see
 * memory.sh: displays the system memory information  
 * load.sh: displays the system CPU utilization  
 * sitestats.sh: internal script for rebuilding the web indices  
