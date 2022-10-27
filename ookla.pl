@@ -29,7 +29,7 @@ my $cmd=$conf{"OOKLACMD"};
 
 print "DBG: piping from cmd: ($cmd)\n" if $DEBUG;
 
-open (CSV, "$cmd|") || die "can't execute speedtest ($cmd) for data import";
+open (CSV, "$cmd 2>/dev/null|") || die "can't execute speedtest ($cmd) for data import";
 while(<CSV>) {
 	chomp;
 	
