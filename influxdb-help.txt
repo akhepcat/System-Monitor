@@ -1,0 +1,24 @@
+
+Help, I started polling a host before changing the poller name, how do i get rid of the old data?
+
+$ sudo influx
+> use sysmon
+> show series where host='poller'
+key
+---
+cpu,host=poller
+disk_usage,drive=sda2,host=poller,mount=/boot
+disk_xfer_rate,drive=sda2,host=poller,mount=/boot
+load,host=poller
+net_xfer_rate,host=poller,interface=ens192
+
+> drop series from cpu where host='poller';
+> drop series from disk_usage where host='poller';
+> drop series from disk_xfer_rate where host='poller';
+> drop series from net_xfer_rate where host='poller';
+
+> show series where host='poller';
+> 
+> exit
+
+
