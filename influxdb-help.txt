@@ -4,6 +4,7 @@ Help, I started polling a host before changing the poller name, how do i get rid
 $ sudo influx
 > use sysmon
 > show series where host='poller'
+
 key
 ---
 cpu,host=poller
@@ -15,10 +16,10 @@ net_xfer_rate,host=poller,interface=ens192
 > drop series from cpu where host='poller';
 > drop series from disk_usage where host='poller';
 > drop series from disk_xfer_rate where host='poller';
+> drop series from load where host='poller';
 > drop series from net_xfer_rate where host='poller';
-
+>
 > show series where host='poller';
 > 
 > exit
-
 
