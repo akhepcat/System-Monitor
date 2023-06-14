@@ -119,7 +119,7 @@ case ${CMD} in
 
 		if [ -n "${INFLUXURL}" ]
 		then
-			status=$(curl -silent -I "${INFLUXURL//write*/}/ping"|grep -i X-Influxdb-Version)
+			status=$(curl -silent -I "${INFLUXURL//write*/}ping"|grep -i X-Influxdb-Version)
 			if [ -z "${status}" ]
 			then
 				echo "${PROG}:FATAL: Can't connect to InfluxDB"
