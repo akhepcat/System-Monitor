@@ -172,17 +172,17 @@ do_graph() {
 		;;
 		week)
 			GRAPHNAME="${GRAPHNAME//.png/-week.png}"
-			TITLE="${MYHOST} last 24 hours ping stats for ${IP} - ${DATE}"
+			TITLE="${MYHOST} last 7 days ping stats for ${IP} - ${DATE}"
 			START="end-$LASTWEEK"
 		;;
 		month)
 	    		GRAPHNAME="${GRAPHNAME//.png/-month.png}"
-			TITLE="${MYHOST} last 24 hours ping stats for ${IP} - ${DATE}"
+			TITLE="${MYHOST} last 30 days ping stats for ${IP} - ${DATE}"
 	    		START="end-$LASTMONTH"
 	    	;;
 		year)
 	    		GRAPHNAME="${GRAPHNAME//.png/-year.png}"
-			TITLE="${MYHOST} last 24 hours ping stats for ${IP} - ${DATE}"
+			TITLE="${MYHOST} last 365 days ping stats for ${IP} - ${DATE}"
 	    		START="end-$LASTYEAR"
 	    	;;
 	    	*) 	echo "broken graph call"
