@@ -46,8 +46,8 @@ fi
 
 RRDFILE="${RRDLIB:-.}/${MYHOST}-${DRIVE}.rrd"
 GRAPHNAME="${WEBROOT:-.}/${MYHOST}-${DRIVE}.png"
-MOUNT="$(mount | grep -w ${LDRIVE} | awk '{print $3}')"
-[[ -z "${MOUNT}" ]] && MOUNT="$(mount | grep -w ${DRIVE} | grep -vw snap | awk '{print $3}')"
+MOUNT="$(mount | grep -w ${LDRIVE} | awk '{print $3}' | head -1)"
+[[ -z "${MOUNT}" ]] && MOUNT="$(mount | grep -w ${DRIVE} | grep -vw snap | awk '{print $3}' | head -1)"
 DFDRIVE=$(df -k | grep -wE "[[:space:]]${MOUNT}" | awk '{print $1}')
 
 poll() {
@@ -63,8 +63,9 @@ case ${CMD} in
 			echo "WEBROOT=${WEBROOT}"
 			echo "RRDFILE=${RRDFILE}"
 			echo "GRAPHNAME=${GRAPHNAME}"
-			echo "MOUNT=${MOUNT}"
 		fi
+
+		echo "MOUNT=${MOUNT}"
 
 		poll
 
