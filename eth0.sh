@@ -31,6 +31,8 @@ GRAPHNAME="${WEBROOT:-.}/${MYHOST}-${IFACE}.png"
 
 case ${CMD} in
 	(debug)
+		echo -n "${IFACE}: "
+
 		if [ "${DONTRRD:-0}" != "1" ]
 		then
 			echo "RRDLIB=${RRDLIB}"
