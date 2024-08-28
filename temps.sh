@@ -55,9 +55,13 @@ poll() {
 			elif [ -r /sys/class/hwmon/hwmon${t}/temp1_input ]
 			then
 				TEMP=$(cat /sys/class/hwmon/hwmon${t}/temp1_input 2>/dev/null)
-#				ZONE=$(cd /sys/class/hwmon/hwmon${t}/device && pwd -P)
-#				ZONE=${ZONE%/*}
-				ZONE=$(cat /sys/class/hwmon/hwmon${t}/name 2>/dev/null)
+				ZONE=$(cd /sys/class/hwmon/hwmon${t}/device && pwd -P)
+				ZONE=${ZONE##*/}
+				if [ -n "${ZONE}" -a -z "${ZONE##*:*}" ]
+				then
+					# device entry instead of name, so use the old lookup
+					ZONE=$(cat /sys/class/hwmon/hwmon${t}/name 2>/dev/null)
+				fi
 				STATS[i]="temp=${TEMP}"
 				ZONES[i]="${ZONE:-zone$i}"
 			else
