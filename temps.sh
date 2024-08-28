@@ -49,6 +49,7 @@ poll() {
 			then
 				TEMP=$(cat /sys/devices/virtual/thermal/thermal_zone${t}/temp)
 				ZONE=$(cat /sys/devices/virtual/thermal/thermal_zone${t}/type 2>/dev/null)
+				ZONE=${ZONE//-thermal/}
 				STATS[i]="temp=${TEMP}"
 				ZONES[i]="${ZONE:-zone$i}"
 			elif [ -r /sys/class/hwmon/hwmon${t}/temp1_input ]
@@ -58,8 +59,8 @@ poll() {
 				STATS[i]="temp=${TEMP}"
 				ZONES[i]="${ZONE:-zone$i}"
 			else
-				STATS[i]="temp=U"
-				ZONES[i]="${ZONE:-zone$i}"
+				STATS[i]=""
+				ZONES[i]=""
 			fi
 			i=$((i + 1))
 		done
