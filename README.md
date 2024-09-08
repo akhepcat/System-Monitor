@@ -7,6 +7,7 @@ A loosely bound collection of scripts that monitor a system or network.
 * do-updates:  central script, called once a minute from crontab  
 * sda1.sh: symlinkable script (per partition/drive) for disk utilization  
 * eth0.sh: symlinkable script (per interface) for network utilization  
+* netifs.sh: auto-discovering script for network utilization, returns all active i/f's, can exclude lo in the config file
 * fping.sh:  network latency for a list of hosts (in do-updates)  
 * response.sh:  creates/updates a single-page index for all fping graphs
 * webspeed.sh: determines network speed by pulling a cached copy of your-favorite-remote-website  
