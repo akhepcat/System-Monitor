@@ -21,13 +21,14 @@ GRAPHBASE="${WEBROOT:-.}/${MYHOST}-${PROGNAME}.png"
 IDX="${WEBROOT:-.}/${MYHOST}-${PROGNAME}.html"
 
 STATS=""
+I2CBUS=${I2CBUS:-0}
 
 # Choose your colors here
 PCOL=44FF44
 TCOL=000ccc
 
 poll() {
-	STATS=$( $SCRIPTHOME/scd4x-i2c.py | sed 's/^.*: \([0-9.]\+\),\([0-9.]\+\),\([0-9.]\+\)/OK temp=\1 humid=\2 co2ppm=\3/;')
+	STATS=$( $SCRIPTHOME/scd4x-i2c.py ${I2CBUS} 2>/dev/null | sed 's/^.*: \([0-9.]\+\),\([0-9.]\+\),\([0-9.]\+\)/OK temp=\1 humid=\2 co2ppm=\3/;')
 	if [ -n "${STATS##*OK*}" ]
 	then
 		STATS="BAD temp=U humid=U co2ppm=U"
