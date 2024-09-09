@@ -25,7 +25,7 @@ MYHOST=${SERVERNAME:-$MYHOST}
 DATE=$(date)
 PATH=${PATH}:/sbin:/usr/sbin
 
-CMD=$1
+CMD=${1}
 
 RRDFILE="${RRDLIB:-.}/${MYHOST}-${PROGNAME}.rrd"
 GRAPHBASE="${WEBROOT:-.}/${MYHOST}-${PROGNAME}.png"
@@ -55,8 +55,9 @@ poll() {
 			elif [ -r /sys/class/hwmon/hwmon${t}/temp1_input ]
 			then
 				TEMP=$(cat /sys/class/hwmon/hwmon${t}/temp1_input 2>/dev/null)
-				ZONE=$(cd /sys/class/hwmon/hwmon${t}/device && pwd -P)
+				ZONE=$(cat /sys/class/hwmon/hwmon${t}/name || echo $(cd /sys/class/hwmon/hwmon${t}/device && pwd -P))
 				ZONE=${ZONE##*/}
+				ZONE=${ZONE//-thermal/}
 				if [ -n "${ZONE}" -a \( -z "${ZONE##*:*}" -o -z "${ZONE//[0-9-]/}" \) ]
 				then
 					# device entry instead of name, so use the old lookup
