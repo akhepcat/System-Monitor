@@ -26,7 +26,7 @@ then
 	DISKS=$(awk '{print $3}' /proc/diskstats | grep -E '[0-9]p[0-9]$|^[hs]d.[0-9]+$'| sort -u)
 else
 	# this should work well on modern linuxes, but it's not as portable
-	DISKS=$(lsblk -io KNAME,TYPE -A --exclude 7 | grep -i part | awk '{print $1}' | sort -u)
+	DISKS=$(lsblk -io KNAME,TYPE --exclude 7 | grep -i part | awk '{print $1}' | sort -u)
 fi
 
 poll() {
