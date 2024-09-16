@@ -68,8 +68,11 @@ poll() {
 			ZONE=${ZONE//-thermal/}
 			ZONE=${ZONE//_temp/}
 
-			STATS[i]="temp=${TEMP}"
-			ZONES[i]="${ZONE:-zone$i}"
+			if [ -n "${TEMP}" ]
+			then
+				STATS[i]="temp=${TEMP}"
+				ZONES[i]="${ZONE:-zone$i}"
+			fi
 
 			i=$((i + 1))
 		done
