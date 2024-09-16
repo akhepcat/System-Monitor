@@ -49,27 +49,28 @@ poll() {
 			then
 				TEMP=$(cat /sys/devices/virtual/thermal/thermal_zone${t}/temp)
 				ZONE=$(cat /sys/devices/virtual/thermal/thermal_zone${t}/type 2>/dev/null)
-				ZONE=${ZONE//-thermal/}
-				STATS[i]="temp=${TEMP}"
-				ZONES[i]="${ZONE:-zone$i}"
 			elif [ -r /sys/class/hwmon/hwmon${t}/temp1_input ]
 			then
 				TEMP=$(cat /sys/class/hwmon/hwmon${t}/temp1_input 2>/dev/null)
 				ZONE=$(cat /sys/class/hwmon/hwmon${t}/name)
 				[[ "${ZONE}" = "nvme" ]] && ZONE=$(cd /sys/class/hwmon/hwmon${t}/device && pwd -P)
 				ZONE=${ZONE##*/}
-				ZONE=${ZONE//-thermal/}
 				if [ -n "${ZONE}" -a \( -z "${ZONE##*:*}" -o -z "${ZONE//[0-9-]/}" \) ]
 				then
 					# device entry instead of name, so use the old lookup
 					ZONE=$(cat /sys/class/hwmon/hwmon${t}/name 2>/dev/null)
 				fi
-				STATS[i]="temp=${TEMP}"
-				ZONES[i]="${ZONE:-zone$i}"
 			else
-				STATS[i]=""
-				ZONES[i]=""
+				TEMP=""
+				ZONE=""
 			fi
+			# zone name corrections
+			ZONE=${ZONE//-thermal/}
+			ZONE=${ZONE//_temp/}
+
+			STATS[i]="temp=${TEMP}"
+			ZONES[i]="${ZONE:-zone$i}"
+
 			i=$((i + 1))
 		done
 	else
