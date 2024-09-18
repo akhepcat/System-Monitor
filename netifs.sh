@@ -20,9 +20,9 @@ fi
 
 if [ ${NOLOOPBACK:-0} -eq 0 ]
 then
-	IFACES=$(ip link show | grep -wv DOWN | grep -w UP | cut -f2 -d:)
+	IFACES=$(ip link show | grep -vE '(docker|veth[a-f0-9]+@|br-[a-f0-9]|DOWN)' | grep -w UP | cut -f2 -d:)
 else
-	IFACES=$(ip link show | grep -wvE 'lo|DOWN' | grep -w UP | cut -f2 -d:)
+	IFACES=$(ip link show | grep -vE '(lo|docker|veth[a-f0-9]+@|br-[a-f0-9]|DOWN)' | grep -w UP | cut -f2 -d:)
 fi
 
 do_debug() {
@@ -146,7 +146,7 @@ updatedb() {
 		then
 			RRDFILE="${RRDLIB:-.}/${MYHOST}-${IFACE}.rrd"
 
-			rrdtool update ${RRDFILE} \
+			test -w "${RRDFILE}" && rrdtool update ${RRDFILE} \
 				N:${DATA}
 		fi
 	done

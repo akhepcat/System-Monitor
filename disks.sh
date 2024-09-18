@@ -153,7 +153,7 @@ updatedb() {
 				poll ${DRIVE}
 				if [ -n "${MOUNT}" ]
 				then
-					rrdtool update ${RRDFILE} \
+					test -w "${RRDFILE}" && rrdtool update ${RRDFILE} \
 						N:${DATA}
 				fi
 			done
