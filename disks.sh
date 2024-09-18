@@ -20,20 +20,28 @@ DATA=0
 SPACE=0
 MOUNT=""
 
-if [ -z "$(command -v lsblk)" -a -z "${DISKS}" ]
-then
+#DISKS="/dev/mapper/vg00-datastore" # dm-0 md0p1"
+
+if [ -z "${DISKS}" ]; then
+    if [ -z "$(command -v lsblk)" ]
+    then
 	# this looks clean but may not catch every variation, and is only as portable as /proc/diskstats is...
-	DISKS=$(awk '{print $3}' /proc/diskstats | grep -E '[0-9]p[0-9]$|^[hs]d.[0-9]+$'| sort -u)
-else
+	DISKS=$(awk '{print $3}' /proc/diskstats | grep -E '([0-9]p[0-9]|^[hs]d.[0-9]+|dm-[0-9]+)$'| sort -u)
+    else
 	# this should work well on modern linuxes, but it's not as portable
-	DISKS=$(lsblk -io KNAME,TYPE --exclude 7 | grep -i part | awk '{print $1}' | sort -u)
+	DISKS=$(lsblk -io KNAME,TYPE --exclude 7 | grep -iE 'part|lvm' | awk '{print $1}' | sort -u)
+    fi
 fi
 
 poll() {
 	local LDRIVE=${1}
 	local DFDRIVE
+	local MAP
 
-	MOUNT="$(mount | grep -w ${LDRIVE} | awk '{print $3}' | head -1)"
+	# if this is a link to /dev/mapper, then override the LDRIVE variable, temporarily for mount
+	MAP=$(/bin/ls -l /dev/mapper 2>&1 | grep -i ${LDRIVE} | awk '{print $9}')
+
+	MOUNT="$(mount | grep -w ${MAP:-LDRIVE} | awk '{print $3}' | head -1)"
 	[[ -z "${MOUNT}" ]] && MOUNT="$(mount | grep -w ${DRIVE} | grep -vw snap | awk '{print $3}' | head -1)"
 	DFDRIVE=$(df -k | grep -wE "[[:space:]]${MOUNT}" | awk '{print $1}')
 
