@@ -1,8 +1,7 @@
 
 Help, I started polling a host before changing the poller name, how do i get rid of the old data?
 
-$ sudo influx
-> use sysmon
+$ sudo influx -username leif -password '' -database sysmon
 > show series where host='poller'
 
 key
