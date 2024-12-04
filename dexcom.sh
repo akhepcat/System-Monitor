@@ -130,7 +130,11 @@ dex_update() {
 	# work around bad json data
 	Value=${Value//[^0-9]/}
 	Value=${Value:-U}
-
+	if [ $Value -gt 500 ]
+	then
+		# Cap the max value at 500 for extreme highs (the controller caps at 400 anyway, displaying only "HIGH")
+		Value=500
+	fi
 
 	Trend=${result##*Trend\":}
 	Trend=${Trend%%:*}; Trend=${Trend%%\}*}; Trend=${Trend%%,*}
@@ -269,7 +273,7 @@ do_graph() {
 			TITLE="${dexcom_username} last year's Blood-Glucose level - ${DATE}"
 	    		START="end-$LASTYEAR"
 			TIMING="2 hour"
-			TREND="trend,LOG,3.8,*,EXP"	# we don't usually print this, but just in case, this widens the compressed data
+			# TREND="trend,LOG,3.8,*,EXP"	# we don't usually print this, but just in case, this widens the compressed data
 	    	;;
 	    	*) 	echo "broken graph call"
 	    		exit 1
