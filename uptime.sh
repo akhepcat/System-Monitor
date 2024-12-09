@@ -28,17 +28,19 @@ case ${CMD} in
 		poll
 		if [ "${DONTRRD:-0}" != "1" ]
 		then
-			if [ -n "$(which convert)" ]
-			then
-				echo "$uptimestr" | convert -size 640x20 -font Liberation-Sans -pointsize 18 -unsharp 0x.5 -background none -trim +repage -fill black text:- ${GRAPHNAME}
-			elif [ -n "$(which pbmtext)" ]
+			if [ -n "$(which pbmtext)" ]
 			then
 				echo "$uptimestr" | pbmtext | pnmcrop | pnmpad -white -left 2 -right 2 -top 2 -bottom 2 | pnmtopng > ${GRAPHNAME}
+			elif [ -n "$(which convert)" ]
+			then
+				echo "$uptimestr" | convert -size 640x20 -font Liberation-Sans -pointsize 18 -unsharp 0x.5 -background none -trim +repage -fill black text:- ${GRAPHNAME}
 			else
 				> ${GRAPHNAME}
 				echo "no ImageMagick or NetPBM installed, can't convert uptime to png"
 			fi
-		else
+		fi
+		if [ -n "${INFLUXURL}" ]
+		then
 			# use Influx
 			DATA="system,host=${MYHOST} uptime=${uptime}\n"
 			if [ -z "${INFLUXURL}" ]
