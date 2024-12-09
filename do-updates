@@ -313,39 +313,43 @@ do_auto()
 	#Every minute (crontab calls us no more than once a minute anyway)
 	do_updates
 
-	#TS is in seconds, so 5 minutes is 300s
-	if [ 0 -eq $((TS % 300)) ]
+
+	# Only do the graphing if RRDs are enabled
+	if [ "${DONTRRD:-0}" != "1" ]
 	then
-		do_graphs
-	fi
+		#TS is in seconds, so 5 minutes is 300s
+		if [ 0 -eq $((TS % 300)) ]
+		then
+			do_graphs
+		fi
 	
-	#...10 minutes is 300s
-	if [ 0 -eq $((TS % 600)) ]
-	then
-		do_graphs weekly
-	fi
+		#...10 minutes is 300s
+		if [ 0 -eq $((TS % 600)) ]
+		then
+			do_graphs weekly
+		fi
 	
-	#...60 minutes is 3600s
-	if [ 0 -eq $((TS % 3600)) ]
-	then
-		do_graphs monthly
+		#...60 minutes is 3600s
+		if [ 0 -eq $((TS % 3600)) ]
+		then
+			do_graphs monthly
+		fi
+
+		#...240 minutes is 14400s
+		if [ 0 -eq $((TS % 14400)) ]
+		then
+			do_graphs yearly
+		fi
+
+		if [ 0 -eq $((TS % 86400)) ]
+		then
+			reindex year
+			reindex month
+			reindex week
+			reindex day
+		fi
+
 	fi
-
-	#...240 minutes is 14400s
-	if [ 0 -eq $((TS % 14400)) ]
-	then
-		do_graphs yearly
-	fi
-
-	if [ 0 -eq $((TS % 86400)) ]
-	then
-		reindex year
-		reindex month
-		reindex week
-		reindex day
-	fi
-
-
 }
 
 check_prereqs() {
