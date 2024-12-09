@@ -366,7 +366,7 @@ check_prereqs() {
 	then
 		REQS="${REQS:+$REQS }gawk"
 	fi
-	if [ -z "$(command -v pbmtext)" -a -n "${PROGS}" -a -z "${PROGS##*uptime*}" ];
+	if [ -z "$(command -v pbmtext)" -a -n "${PROGS}" -a -z "${PROGS##*uptime*}" -a "${DONTRRD:-0}" != "1" ];
 	then
 		REQS="${REQS:+$REQS }netpbm"
 	fi
