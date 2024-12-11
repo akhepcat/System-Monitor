@@ -46,7 +46,7 @@ poll() {
 	DFDRIVE=$(df -k | grep -wE "[[:space:]]${MOUNT}" | awk '{print $1}')
 
 	DATA=$(gawk -v drive="${LDRIVE}" '{ if ($0 ~ drive"[ \t]") { print $6":"$10 }; }' /proc/diskstats )
-	SPACE=$(df -k | gawk -v drive="${DFDRIVE}" '{if ($0 ~ drive) {printf $2 ":" $3} }')
+	SPACE=$(df -k | gawk -v drive="${DFDRIVE}" '{if ($0 ~ drive) {printf $2 ":" $4} }')
 }
 
 do_debug() {
