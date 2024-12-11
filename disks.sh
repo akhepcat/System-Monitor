@@ -69,40 +69,40 @@ do_debug() {
 	then
 		echo "RRDLIB=${RRDLIB}"
 		echo "WEBROOT=${WEBROOT}"
-		for DRIVE in ${DISKS}
-		do
-			echo -n "${DRIVE}: "
-
-			RRDFILE="${RRDLIB:-.}/${MYHOST}-${DRIVE}.rrd"
-			GRAPHNAME="${WEBROOT:-.}/${MYHOST}-${DRIVE}.png"
-
-			echo "RRDFILE=${RRDFILE}"
-			echo "GRAPHNAME=${GRAPHNAME}"
-
-			poll ${DRIVE}
-
-			if [ -n "${MOUNT}" ]
-			then
-				echo throughput=${DATA}
-				echo utilization=${SPACE}
-			fi
-
-		done
-	elif [ -n "${INFLUXURL}" ]
-	then
-		echo "Would send to influxdb:"
-		for DRIVE in ${DISKS}
-		do
-			poll ${DRIVE}
-			if [ -n "${MOUNT}" ]
-			then
-				echo "disk_xfer_rate,host=${MYHOST},drive=${DRIVE},mount=${MOUNT} read=${DATA%:*}"
-				echo "disk_xfer_rate,host=${MYHOST},drive=${DRIVE},mount=${MOUNT} write=${DATA#*:}"
-				echo "disk_usage,host=${MYHOST},drive=${DRIVE},mount=${MOUNT} size=${SPACE%:*}"
-				echo "disk_usage,host=${MYHOST},drive=${DRIVE},mount=${MOUNT} free=${SPACE#*:}"
-			fi
-		done
 	fi
+
+	for DRIVE in ${DISKS}
+	do
+		poll ${DRIVE}
+
+		if [ -n "${MOUNT}" ]
+		then
+			echo "${DRIVE}: "
+			if [ "${DONTRRD:-0}" != "1" ]
+			then
+				echo ""
+
+				RRDFILE="${RRDLIB:-.}/${MYHOST}-${DRIVE}.rrd"
+				GRAPHNAME="${WEBROOT:-.}/${MYHOST}-${DRIVE}.png"
+
+				echo "  rrdtool:"
+				echo "    RRDFILE=${RRDFILE}"
+				echo "    GRAPHNAME=${GRAPHNAME}"
+				echo "    throughput=${DATA}"
+				echo "    utilization=${SPACE}"
+				echo ""
+			fi
+
+			if [ -n "${INFLUXURL}" ]
+			then
+				echo "  influxdb:"
+				echo "    disk_xfer_rate,host=${MYHOST},drive=${DRIVE},mount=${MOUNT} read=${DATA%:*}"
+				echo "    disk_xfer_rate,host=${MYHOST},drive=${DRIVE},mount=${MOUNT} write=${DATA#*:}"
+				echo "    disk_usage,host=${MYHOST},drive=${DRIVE},mount=${MOUNT} size=${SPACE%:*}"
+				echo "    disk_usage,host=${MYHOST},drive=${DRIVE},mount=${MOUNT} free=${SPACE#*:}"
+			fi
+		fi
+	done
 }
 
 updatedb() {
