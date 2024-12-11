@@ -17,8 +17,13 @@ net_xfer_rate,host=poller,interface=ens192
 > drop series from disk_xfer_rate where host='poller';
 > drop series from load where host='poller';
 > drop series from net_xfer_rate where host='poller';
+
+
+Some other useful commands
+
+> select * from net_xfer_rate where host='poller' order by time DESC limit 10
 >
-> show series where host='poller';
-> 
+> delete from disk_xfer_rate where host='poller' and drive='ubuntu--vg-ubuntu--lv'
+
 > exit
 
